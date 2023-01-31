@@ -1,0 +1,68 @@
+{
+    "get":[
+        {
+            "title": "Listar todas las autores",
+            "url": "/persona/autor",
+            "code": 200 
+        },
+        {
+            "title": "Listar todos los ilustradores",
+            "url": "/persona/autor",
+            "code": 200 
+        },
+        {
+            "title": "Obtener un autor",
+            "url": "/persona/autor/7",
+            "code": 200 
+        },
+        {
+            "title": "Obtener un ilustrador",
+            "url": "/persona/ilustrador/15",
+            "code": 200 
+        },
+        {
+            "title": "Autor no encontrado",
+            "url": "/persona/autor/-1",
+            "code": 404 
+        },
+        {
+            "title": "Ilustrador no encontrado",
+            "url": "/persona/ilustrador/-1",
+            "code": 404 
+        }   
+    ],
+    "post": [
+        {   
+            "title": "Creada correctamente",
+            "data":{
+                "nombre": "jose",
+                "email": "jose@gmail.com",
+                "tipo": 0
+             },
+             "code": 201
+        },
+        {   
+            "title": "Sin nombre",
+            "data":{
+                "email": "jose@gmail.com",
+                "tipo": 0
+             },
+             "code": 400,
+             "expect": {
+                "message": "El nombre es obligatorio"
+              }
+        },
+        {   
+            "title": "tipo incorrecto",
+            "data":{
+                "nombre": "jose",
+                "email": "jose@gmail.com",
+                "tipo": 4
+             },
+             "code": 400,
+             "expect": {
+                "message": "El tipo debe ser 0(autor) o 1(ilustrador)'"
+              }
+        }
+    ]
+}

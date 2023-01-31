@@ -1,0 +1,110 @@
+[
+    {
+        "title": "Autor no encontrado",
+        "data": {
+            "isbn": "1234567891017",
+            "titulo": "Caserio",
+            "fecha_edicion": "2020-02-17",
+            "precio": 2500.0,
+            "autores":[
+                {
+                    "id": -1
+                }
+            ],
+            "ilustradores": [
+            ]
+        },
+        "code": 404,
+        "expect": {
+            "message": "El autor con id -1 no se encontro"
+        }
+    },
+    {
+        "title": "Ilustrador not found",
+        "data": {
+            "isbn": "1234567891017",
+            "titulo": "Caserio",
+            "fecha_edicion": "2020-02-17",
+            "precio": 2500.0,
+            "autores":[
+            ],
+            "ilustradores": [
+                {
+                    "id": -1
+                }
+            ]
+        },
+        "code": 404,
+        "expect": {
+            "message": "El ilustrador con id -1 no se encontro"
+        }
+    },
+    {
+        "title": "Persona sin nombre",
+        "data": {
+            "isbn": "1234567891018",
+            "fecha_edicion": "2020-02-17",
+            "precio": 2500.0,
+            "titulo": "Caserio",
+            "autores": [
+            ],
+            "ilustradores": [
+              {
+                "email": "caro@gmail.com"
+              }
+            ]
+          },
+        "code": 400,
+        "expect": {
+            "message": "El nombre es obligatorio"
+          }
+    },
+    {
+        "title": "Sin precio",
+        "data": {
+            "isbn": "1234567891020",
+            "fecha_edicion": "2020-02-17",
+            "titulo": "Caserio"
+        },
+        "code": 400,
+        "expect": {
+            "message": "El precio es obligatorio"
+        } 
+    },
+    {
+        "title": "Sin titulo",
+        "data": {
+            "isbn": "1234567891020",
+            "fecha_edicion": "2020-02-17",
+            "precio": 2500
+        },
+        "code": 400,
+        "expect": {
+            "message": "El titulo es obligatorio"
+        } 
+    },
+    {
+        "title": "Sin fecha edicion",
+        "data": {
+            "isbn": "1234567891020",
+            "titulo": "Caserio",
+            "precio": 2500
+        },
+        "code": 400,
+        "expect": {
+            "message": "La fecha de edicion es obligatoria"
+        } 
+    },
+    {
+        "title": "Sin isbn",
+        "data": {
+            "fecha_edicion": "2020-02-17",
+            "titulo": "Caserio",
+            "precio": 2500
+        },
+        "code": 400,
+        "expect": {
+            "message": "El isbn es obligatorio"
+        } 
+    }
+]
