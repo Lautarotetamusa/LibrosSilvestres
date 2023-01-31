@@ -30,13 +30,13 @@ Copy /db/db.sql in console and press enter
 touch .env
 `
 
-env file:
+env file:  
 `
-DB_HOST: localhost
-DB_USER: user
-DB_PASS: newpassowrd
-DB_PORT: port
-DB_NAME: db_name
+DB_HOST: localhost  
+DB_USER: user  
+DB_PASS: newpassowrd  
+DB_PORT: port  
+DB_NAME: db_name  
 `
 
 
