@@ -1,20 +1,18 @@
-// Install
+## Install mysql ##
 
-# Install mysql #
+## Config mysql ##
 
-# Config mysql #
-
-Enter in mysql
+Enter in mysql  
 `
-sudo mysql -u root
+sudo mysql -u root  
 `
 
-Create new user
+Create new user  
 `
 GRANT ALL PRIVILEGES ON *.* TO 'user'@'localhost' IDENTIFIED BY 'newpassword';
 `
 
-# Create new database #
+## Create new database ##
 `
 mysql -u user -p
 `
@@ -22,11 +20,11 @@ mysql -u user -p
 CREATE DATABASE db_name;
 `
 
-# Create the tables #
+## Create the tables ##
 Copy /db/db.sql in console and press enter
 
 
-# Create .env file #
+## Create .env file ##
 
 `
 touch .env
