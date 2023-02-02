@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  mysqldb:
+    image: mariadb:10.9.4
+    restart: unless-stopped
+    env_file: ./.env
+    environment:
+      - MARIADB_ROOT_PASSWORD=$DB_PASS
+      - MYSQL_PASSWORD=$DB_PASS
+    ports:
+      - $DB_PORT:$DB_PORT
+    volumes:
+      - /var/lib/mysql:/var/lib/mysql
+  
+  app:
+    depends_on:
+      - mysqldb
+    build: 
+      dockerfile: ./Dockerfile
+    env_file: ./.env
+    ports:
+      - $PORT:$PORT
+    environment:
+      - DB_HOST=mysqldb
+    volumes:
+     - ./src:/app/src
+    #stdin_open: true
+    #tty: true
+

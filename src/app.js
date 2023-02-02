@@ -1,12 +1,15 @@
 import express from "express"
 
+import dotenv from 'dotenv'
+
 import personaRouter from "./routes/persona.routes.js"
 import libroRouter from "./routes/libro.routes.js"
 import ClienteRouter from "./routes/cliente.routes.js"
 import VentaRouter from "./routes/venta.routes.js"
 
+dotenv.config();
 export const app = express()
-const port = 3000 
+const port = process.env.PORT;
 
 app.use(express.json());
 app.use(express.urlencoded({extended: true,}));
