@@ -44,7 +44,7 @@ export class Cliente{
 
     static validate(request) {
         if (request.tipo == Cliente.inscripto)
-            validate_inscripto();
+            Cliente.validate_inscripto(request);
 
         if(!('tipo' in request))
             throw new ValidationError("Se debe pasar un tipo");
@@ -59,8 +59,8 @@ export class Cliente{
             throw new ValidationError("El tipo del cliente no es correcto [0,1]");
     }
     static validate_inscripto(request){
-        if (!request.cuit)
-                throw new ValidationError("El cuit es obligatorio para los clientes inscriptos");
+        if (!('cuit' in request))
+            throw new ValidationError("El cuit es obligatorio para los clientes inscriptos");
             
         if(!('cond_fiscal' in request))
             throw new ValidationError("La condicion fiscal es obligatoria para los clientes inscriptos");

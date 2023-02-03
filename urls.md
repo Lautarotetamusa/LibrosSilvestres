@@ -1,3 +1,12 @@
+# API backend
+
+## Indice
+
+* [Personas](#Personas)
+* [Libros](#Libros)
+* [Clientes](#Clientes)
+* [Ventas](#Ventas)
+
 ## Personas
 
 #### Lista de autores
@@ -5,7 +14,6 @@
 
 #### Lista de ilustradores
 `GET /persona/ilustrador`
-
 
 #### Dar de alta persona
 `POST /persona`
@@ -16,10 +24,12 @@
   "tipo": 0 //tiene que ser 0(autor) o 1(ilustrador)
 }
 ```
-#### Obtener autor con id
+
+#### Obtener persona con id
+Autor
 `GET /persona/autor/{id}`
 
-#### Obtener ilustrador con id
+Ilustrador
 `GET /persona/ilustrador/{id}`
 
 #### Actualizar persona con id
@@ -72,20 +82,75 @@
 ```json
 {
   "titulo": "Breviario",
-  "isbn": "9876543214",
   "precio": 4500
 }
 ```
-
 No se pueden actualizar las personas de los libros todavia lo tengo que agregar.
 
 #### Borrar un libro
 No está hecho todavía
 
+## Clientes
+
+#### Obtener todos los clientes
+`GET /cliente`
+
+#### Obtener cliente por id
+`GET /cliente/{id}`
+
+#### Crear cliente
+`POST /cliente`
+
+Clientes del tipo 0 (particular)
+```json
+{
+    "nombre": "jose",
+    "email": "jose@gmail.com",
+}
+```
+
+Clientes del tipo 1 (inscripto)
+```json
+{
+    "nombre": "Libreria 3",
+    "email": "libreria3@gmail.com",
+    "tipo": 1,
+    "cuit": 434919798,
+    "cond_fiscal": 1
+}
+```
+
+#### Actualizar cliente
+`PUT /cliente/{id}`
+
+Actualizar cliente del tipo 0 al tipo 1
+```json
+{
+    "nombre": "Libreria 3",
+    "email": "libreria3@gmail.com",
+    "tipo": 1,
+    "cuit": 434919798,
+    "cond_fiscal": 1
+}
+```
+
+Actualizar cliente del tipo 0
+```json
+{
+    "nombre": "jose",
+    "email": "jose@gmail.com",
+}
+```
+
+#### Borrar un cliente
+`DELETE cliente/12`
+
 ## Ventas
 
 #### Nueva venta
 `POST /venta`
+
+
 ```json
 {
     "medio_pago": 0,

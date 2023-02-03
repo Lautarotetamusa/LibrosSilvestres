@@ -1,4 +1,19 @@
-## Install mysql ##
+# [Api references](./urls.md)
+
+# Instalacion con docker
+Instalar docker
+`sudo apt install docker`
+
+Correr el servicio
+`sudo systemctl start docker`
+
+Ejecutar el server
+`sudo docker-compose up`
+
+# Instalacion manual
+
+## Instal mylsql ##
+`sudo apt install mysql`
 
 ## Config mysql ##
 
@@ -21,6 +36,7 @@ CREATE DATABASE db_name;
 `
 
 ## Create the tables ##
+Enter in mysql console
 Copy /db/db.sql in console and press enter
 
 
@@ -31,12 +47,14 @@ touch .env
 `
 
 env file:  
-`
-DB_HOST: localhost  
+```
+DB_HOST: localhost
 DB_USER: user  
-DB_PASS: newpassowrd  
-DB_PORT: port  
+DB_PASS: passowrd  
+DB_PORT: 3306  
 DB_NAME: db_name  
-`
+DB_PORT: 3000
+```
 
-
+## Run the backend
+`npm run dev`
