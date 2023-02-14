@@ -7,7 +7,7 @@ CREATE TABLE libros(
     precio FLOAT NOT NULL,
     stock INT DEFAULT 0,
 
-    activo BOOLEAN DEFAULT true,
+    is_deleted BOOLEAN DEFAULT false,
 
     PRIMARY KEY(isbn)
 );
@@ -17,6 +17,8 @@ CREATE TABLE personas(
     nombre VARCHAR(60) NOT NULL,
     email  VARCHAR(60) DEFAULT "",
     tipo TINYINT DEFAULT 0, 
+
+    is_deleted BOOLEAN DEFAULT false,
 
     PRIMARY KEY (id)
 );

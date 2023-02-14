@@ -2,7 +2,7 @@ import request from 'supertest';
 
 import chai from 'chai';
 
-import {app} from '../src/app.js'
+//import {app} from '../src/app.js'
 
 import {Persona} from '../src/models/persona.model.js'
 
@@ -12,6 +12,7 @@ const rawdata = fs.readFileSync("tests/persona.test.json");
 const tests = JSON.parse(rawdata);
 
 let persona = {}
+const app = 'http://localhost:3001'
 
 describe('POST persona/', () => {
     it('Sin nombre', async () => {
@@ -114,6 +115,13 @@ describe('DELETE /persona/{id}', () => {
         const res = await request(app).delete('/persona/'+persona.id);
 
         chai.expect(res.status).to.equal(200);
+    });
+
+    it('La persona ya no está en la lista', async () => {
+        const res = await request(app).get('/persona/autor/');
+
+        chai.expect(res.status).to.equal(200);
+        chai.expect(res.body).to.not.include(persona);
     });
   });
 

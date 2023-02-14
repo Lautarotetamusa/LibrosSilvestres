@@ -35,7 +35,8 @@ export class Persona {
     async update(id) {
         let res = (await conn.query(`
             UPDATE ${table_name} SET ?
-            WHERE id=${id}`
+            WHERE id=${id}
+            AND is_deleted = 0`
         , this))[0];
 
         if (res.affectedRows == 0)
@@ -51,13 +52,19 @@ export class Persona {
     }
 
     static async delete(id){
-        await conn.query(`
+        /*await conn.query(`
             DELETE FROM libros_personas
             WHERE id_persona = ${id}
-        `);
+        `);*/
+
+        /*let res = (await conn.query(`
+            DELETE FROM ${table_name}
+            WHERE id=${id}`
+        ))[0];*/
 
         let res = (await conn.query(`
-            DELETE FROM ${table_name}
+            UPDATE ${table_name}
+            SET is_deleted = 1
             WHERE id=${id}`
         ))[0];
 
@@ -67,8 +74,9 @@ export class Persona {
 
     static async get_all(tipo) {
         let personas = (await conn.query(`
-            SELECT * FROM ${table_name} 
+            SELECT id, nombre, email, tipo FROM ${table_name} 
             WHERE tipo=${tipo}
+            AND is_deleted = 0
         `))[0];
             
         return personas;
@@ -79,6 +87,7 @@ export class Persona {
             SELECT * FROM ${table_name} 
             WHERE tipo=${tipo} 
             AND id=${id}
+            AND is_deleted = 0
         `))[0];
 
         if (!response.length)
@@ -95,6 +104,7 @@ export class Persona {
             INNER JOIN ${table_name}
                 ON libros.isbn = libros_personas.isbn
             WHERE personas.id=${id}
+            AND personas.is_deleted = 0
         `))[0];
 
         return libros;
@@ -106,11 +116,6 @@ Persona.tipos = {
     ilustrador: 1
 }
 Persona.str_tipos = Object.keys(Persona.tipos);
-
-//Persona.ValidationError = ValidationError;
-//Persona.NotFound = NotFound;
-//Persona.NothingChanged = NothingChanged;
-Persona.PersonError = PersonError;
 
 
 

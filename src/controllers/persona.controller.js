@@ -1,6 +1,8 @@
 import { Persona } from "../models/persona.model.js";
+import { parse_error } from '../models/errors.js'
 
 export const PersonaController = {};
+
 
 PersonaController.create = async (req, res) => {
      try {
@@ -10,7 +12,7 @@ PersonaController.create = async (req, res) => {
 
         await persona.insert(req.body);
 
-        res.status(201).json({
+        return res.status(201).json({
             success: true,
             message: "Persona creada correctamente",
             data: persona

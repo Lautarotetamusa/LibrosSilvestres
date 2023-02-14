@@ -11,7 +11,7 @@ export class PersonError extends Error {
 }
 
 export function parse_error(res, error){
-    if (error instanceof Persona.PersonError)
+    if (error instanceof PersonError)
         return res.status(error.status_code).json(error.res)
         
     console.log(error);
