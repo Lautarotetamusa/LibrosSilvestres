@@ -3,32 +3,38 @@
         {
             "title": "Listar todas las autores",
             "url": "/persona/autor",
-            "code": 200 
+            "code": 200,
+            "type": "list"
         },
         {
             "title": "Listar todos los ilustradores",
-            "url": "/persona/autor",
-            "code": 200 
+            "url": "/persona/ilustrador",
+            "code": 200,
+            "type": "list" 
         },
         {
             "title": "Obtener un autor",
-            "url": "/persona/autor/7",
-            "code": 200 
+            "url": "/persona/autor/124",
+            "code": 200,
+            "type": "Object" 
         },
         {
             "title": "Obtener un ilustrador",
-            "url": "/persona/ilustrador/15",
-            "code": 200 
+            "url": "/persona/ilustrador/16",
+            "code": 200,
+            "type": "Object" 
         },
         {
             "title": "Autor no encontrado",
             "url": "/persona/autor/-1",
-            "code": 404 
+            "code": 404,
+            "type": "Object" 
         },
         {
             "title": "Ilustrador no encontrado",
             "url": "/persona/ilustrador/-1",
-            "code": 404 
+            "code": 404,
+            "type": "Object" 
         }   
     ],
     "post": [

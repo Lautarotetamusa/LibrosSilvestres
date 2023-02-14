@@ -1,31 +1,10 @@
 import {conn} from "../db.js"
+import {PersonError} from './errors.js'
+
 
 const table_name = "personas";
 
-class ValidationError extends Error {
-    constructor(message){
-        super(message);
-        this.name = "ValidationError";
-        this.status_code = 400;
-    }
-}
-class NotFound extends Error {
-    constructor(message){
-        super(message);
-        this.name = "NotFound";
-        this.status_code = 404;
-    }
-}
-class NothingChanged extends Error {
-    constructor(message){
-        super(message);
-        this.name = "NothingChanged";
-        this.status_code = 200;
-    }
-}
-
 //TODO: porcentaje de la persona
-
 export class Persona {
     //Validamos al momento de crear un objeto
     constructor(persona) {
@@ -36,13 +15,13 @@ export class Persona {
     
     static validate(request) {
         if (!request.nombre)
-            throw new ValidationError("El nombre es obligatorio");
+            throw new PersonError("El nombre es obligatorio", 400);
 
         if (!request.email)
             this.email = ""
 
         if (![0, 1].includes(request.tipo))
-            throw new ValidationError("El tipo debe ser 0(autor) o 1(ilustrador)'");
+            throw new PersonError("El tipo debe ser 0(autor) o 1(ilustrador)'", 400);
     }
 
     async insert() {
@@ -60,10 +39,10 @@ export class Persona {
         , this))[0];
 
         if (res.affectedRows == 0)
-            throw new NotFound(`No se encuentra la persona con id ${id}`);
+            throw new PersonError(`No se encuentra la persona con id ${id}`, 404);
 
         if (res.changedRows == 0)
-            throw new NothingChanged('Ningun valor es distinto a lo que ya existia en la base de datos');
+            throw new PersonError('Ningun valor es distinto a lo que ya existia en la base de datos', 200);
 
         return {
             id: res.insertedId,
@@ -83,7 +62,7 @@ export class Persona {
         ))[0];
 
         if (res.affectedRows == 0)
-            throw new NotFound(`No se encuentra la persona con id ${id}`);
+            throw new PersonError(`No se encuentra la persona con id ${id}`, 404);
     }
 
     static async get_all(tipo) {
@@ -103,7 +82,7 @@ export class Persona {
         `))[0];
 
         if (!response.length)
-            throw new NotFound(`El ${Persona.str_tipos[tipo]} con id ${id} no se encontro`);
+            throw new PersonError(`El ${Persona.str_tipos[tipo]} con id ${id} no se encontro`, 404);
 
         return response[0];
     }
@@ -128,9 +107,10 @@ Persona.tipos = {
 }
 Persona.str_tipos = Object.keys(Persona.tipos);
 
-Persona.ValidationError = ValidationError;
-Persona.NotFound = NotFound;
-Persona.NothingChanged = NothingChanged;
+//Persona.ValidationError = ValidationError;
+//Persona.NotFound = NotFound;
+//Persona.NothingChanged = NothingChanged;
+Persona.PersonError = PersonError;
 
 
 

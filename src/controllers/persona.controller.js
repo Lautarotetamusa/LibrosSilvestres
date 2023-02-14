@@ -11,14 +11,13 @@ PersonaController.create = async (req, res) => {
         await persona.insert(req.body);
 
         res.status(201).json({
+            success: true,
             message: "Persona creada correctamente",
             data: persona
         });
-    } catch (error) { //Error handling
-        if (error instanceof Persona.ValidationError)
-            return res.status(error.status_code).json({message: error.message})
-        
-        return res.status(500).json(error);   
+
+    } catch (error) {
+        return parse_error(res, error);
     }
 }
 
@@ -28,23 +27,20 @@ PersonaController.update = async (req, res) => {
     
         if (Object.keys(persona).length === 0 && persona.constructor === Object) //Si persona es un objeto vacio
             return res.status(204).json({
+                success:true,
                 message: "No hay ningun campo para actualizar",
             })
 
         await persona.update(req.params.id);
 
         return res.status(201).json({
+            success:true,
             message: "Persona actualizada correctamente",
             data: persona
         })
-    } catch (error) {
-        console.log(error)
-        if (error instanceof Persona.NotFound)
-            return res.status(error.status_code).json({message: error.message})
-        if (error instanceof Persona.NothingChanged)
-            return res.status(error.status_code).json({message: error.message})
 
-        return res.status(500).json(error); 
+    } catch (error) {
+        return parse_error(res, error);
     }
 }
 
@@ -52,14 +48,13 @@ PersonaController.delete = async (req, res) => {
     try {
         await Persona.delete(req.params.id)
 
-        return res.json({message: `Persona con id ${req.params.id} eliminada correctamente`})
+        return res.json({
+            success: true,
+            message: `Persona con id ${req.params.id} eliminada correctamente`
+        })
 
     } catch (error) {
-        console.log(error)
-        if (error instanceof Persona.NotFound)
-            return res.status(error.status_code).json({message: error.message})
-
-        return res.status(500).json(error); 
+        return parse_error(res, error);
     }
 }
 
@@ -78,8 +73,7 @@ PersonaController.get_all = async (req, res) => {
         
         res.json(personas)
     } catch (error) {
-        console.log(error)
-        return res.status(500).json(error)
+        return parse_error(res, error);
     }
 }
 
@@ -97,12 +91,6 @@ PersonaController.get_one = async (req, res) => {
 
         res.json(persona);
     } catch (error) {
-        if (error instanceof Persona.NotFound)
-            return res.status(error.status_code).json({message: error.message}); 
-        
-        console.log(error);
-        return res.status(500).json(error);
+        return parse_error(res, error);
     }
 }
-
-
