@@ -1,5 +1,5 @@
 import {conn} from "../db.js"
-import {PersonError} from './errors.js'
+import {ValidationError, NotFound, NothingChanged} from './errors.js'
 
 
 const table_name = "personas";
@@ -15,13 +15,13 @@ export class Persona {
     
     static validate(request) {
         if (!request.nombre)
-            throw new PersonError("El nombre es obligatorio", 400);
+            throw new ValidationError("El nombre es obligatorio");
 
         if (!request.email)
             this.email = ""
 
         if (![0, 1].includes(request.tipo))
-            throw new PersonError("El tipo debe ser 0(autor) o 1(ilustrador)'", 400);
+            throw new ValidationError("El tipo debe ser 0(autor) o 1(ilustrador)'");
     }
 
     async insert() {
@@ -40,10 +40,10 @@ export class Persona {
         , this))[0];
 
         if (res.affectedRows == 0)
-            throw new PersonError(`No se encuentra la persona con id ${id}`, 404);
+            throw new NotFound(`No se encuentra la persona con id ${id}`);
 
         if (res.changedRows == 0)
-            throw new PersonError('Ningun valor es distinto a lo que ya existia en la base de datos', 200);
+            throw new NothingChanged('Ningun valor es distinto a lo que ya existia en la base de datos');
 
         return {
             id: res.insertedId,
@@ -69,7 +69,7 @@ export class Persona {
         ))[0];
 
         if (res.affectedRows == 0)
-            throw new PersonError(`No se encuentra la persona con id ${id}`, 404);
+            throw new NotFound(`No se encuentra la persona con id ${id}`);
     }
 
     static async get_all(tipo) {
@@ -84,14 +84,14 @@ export class Persona {
 
     static async get_by_id(id, tipo) {
         let response = (await conn.query(`
-            SELECT * FROM ${table_name} 
+            SELECT id, nombre, email, tipo FROM ${table_name} 
             WHERE tipo=${tipo} 
             AND id=${id}
             AND is_deleted = 0
         `))[0];
 
         if (!response.length)
-            throw new PersonError(`El ${Persona.str_tipos[tipo]} con id ${id} no se encontro`, 404);
+            throw new NotFound(`El ${Persona.str_tipos[tipo]} con id ${id} no se encontro`);
 
         return response[0];
     }

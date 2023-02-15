@@ -2,6 +2,7 @@ import {conn} from "../db.js"
 
 import { Persona } from "../models/persona.model.js";
 import { Libro } from "../models/libro.model.js";
+import { parse_error } from "../models/errors.js"
 
 function parse_req(body){
     //Persona.tipos agregando 'es' al final: [autores, ilustradores]
@@ -68,18 +69,18 @@ LibroController.create = async (req, res) => {
 
         await libro.insert(indb);
 
-        return res.json({
-            ...libro,
-            autores:      personas_data.filter(p => p.tipo == Persona.tipos["autor"]),
-            ilustradores: personas_data.filter(p => p.tipo == Persona.tipos["ilustrador"]),
+        return res.status(201).json({
+            success: true,
+            message: "Libro creado correctamente",
+            data: {
+                ...libro,
+                autores:      personas_data.filter(p => p.tipo == Persona.tipos["autor"]),
+                ilustradores: personas_data.filter(p => p.tipo == Persona.tipos["ilustrador"]),
+            }
         })
 
     } catch (error) {
-        if ('status_code' in error) 
-            return res.status(error.status_code).json({message: error.message})
-            
-        console.log(error);
-        return res.status(500).json(error);
+        return parse_error(res, error);
     }
 }
 
@@ -87,13 +88,12 @@ LibroController.delete = async(req, res) => {
     try {
         await Libro.delete(req.params.isbn)
 
-        return res.json({message: `Libro con isbn ${req.params.isbn} eliminado correctamente`})
+        return res.json({
+            success: true,
+            message: `Libro con isbn ${req.params.isbn} eliminado correctamente`
+        })
     } catch (error) {
-        if (error instanceof Libro.LibroError)
-            return res.status(error.status_code).json({message: error.message})
-        
-        console.log(error)
-        return res.status(500).json(error); 
+        return parse_error(res, error); 
     }
 }
 
@@ -103,11 +103,7 @@ LibroController.update = async(req, res) => {
 
         return res.json({message: `Libro con isbn ${req.params.isbn} actualizado correctamente`})
     } catch (error) {
-        if (error instanceof Libro.LibroError)
-            return res.status(error.status_code).json({message: error.message})
-        
-        console.log(error)
-        return res.status(500).json(error); 
+        return parse_error(res, error);
     }
 }
 
@@ -122,11 +118,7 @@ LibroController.get_one = async(req, res) => {
 
         res.json(libro)
     } catch (error) {
-        if (error instanceof Libro.LibroError)
-            return res.status(error.status_code).json({message: error.message})
-
-        console.log(error)
-        return res.status(500).json(error)
+        return parse_error(res, error);
     }
 }
 
@@ -139,8 +131,6 @@ LibroController.get_all = async(req, res) => {
 
         res.json(libros);
     } catch (error) {
-        console.log(error);
-        return res.status(500).json(error)
+        return parse_error(res, error);
     }
 }
-

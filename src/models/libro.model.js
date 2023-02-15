@@ -1,15 +1,8 @@
 import {conn} from "../db.js"
 import {Persona} from "./persona.model.js"
+import {ValidationError, NotFound} from './errors.js'
 
 const table_name = "libros"
-
-class LibroError extends Error {
-    constructor(message, code){
-        super(message);
-        this.name = "LibroError";
-        this.status_code = code;
-    }
-}
 
 export class Libro {
     constructor(libro) {
@@ -22,16 +15,16 @@ export class Libro {
     //Validate the request
     static validate(request) {
         if (!request.titulo)
-            throw new LibroError("El titulo es obligatorio", 400)
+            throw new ValidationError("El titulo es obligatorio")
 
         if (!request.isbn)
-            throw new LibroError("El isbn es obligatorio", 400)
+            throw new ValidationError("El isbn es obligatorio")
 
         if (!request.fecha_edicion)
-            throw new LibroError("La fecha de edicion es obligatoria", 400)
+            throw new ValidationError("La fecha de edicion es obligatoria")
 
-        if (!request.precio)
-            throw new LibroError("El precio es obligatorio", 400)
+        if (!('precio' in request))
+            throw new ValidationError("El precio es obligatorio")
     }
 
 
@@ -59,10 +52,11 @@ export class Libro {
             UPDATE ${table_name}
             SET ?
             WHERE isbn=${isbn}
+            AND is_deleted = 0
         `, data))[0];
 
         if (res.affectedRows == 0)
-            throw new LibroError(`No se encuentra el libro con isbn ${isbn}`, 404);
+            throw new NotFound(`No se encuentra el libro con isbn ${isbn}`);
 
         //TODO: actualizar las personas
     }
@@ -74,35 +68,39 @@ export class Libro {
         `);
 
         let res = (await conn.query(`
-            UPDATE FROM ${table_name}
-            WHERE isbn=${isbn}`
+            UPDATE ${table_name}
+            SET is_deleted = 1
+            WHERE isbn=${isbn}
+            AND is_deleted = 0`
         ))[0];
 
         if (res.affectedRows == 0)
-            throw new LibroError(`No se encuentra el libro con isbn ${isbn}`, 404);   
+            throw new NotFound(`No se encuentra el libro con isbn ${isbn}`);   
     }
 
     static async get_by_isbn(isbn) {
         let response = (await conn.query(`
             SELECT * FROM ${table_name} 
             WHERE ${table_name}.isbn = ${isbn}
+            AND is_deleted = 0
         `))[0];
 
         if (!response.length)
-            throw new LibroError(`El libro con isbn ${isbn} no se encontro`, 404)
+            throw new NotFound(`El libro con isbn ${isbn} no se encontro`)
 
         return response[0];
     }
 
     static async get_personas(isbn) {
         let personas = (await conn.query(`
-            SELECT personas.*
+            SELECT id, nombre, email, tipo
             FROM personas 
             INNER JOIN libros_personas
             INNER JOIN ${table_name}
             ON personas.id  = libros_personas.id_persona
             AND ${table_name}.isbn = libros_personas.isbn
             WHERE ${table_name}.isbn = ${isbn}
+            AND ${table_name}.is_deleted = 0
         `))[0];
 
         return {
@@ -119,6 +117,7 @@ export class Libro {
         let libros = (await conn.query(`
             SELECT *
             FROM ${table_name}
+            WHERE is_deleted = 0
             LIMIT ${libros_per_page}
             OFFSET ${page * libros_per_page}
         `))[0];
@@ -133,5 +132,3 @@ export class Libro {
         return libros;
     }
 }
-
-Libro.LibroError = LibroError; 
