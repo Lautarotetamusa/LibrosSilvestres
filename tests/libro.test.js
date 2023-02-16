@@ -7,7 +7,7 @@ import chai, { expect } from 'chai';
 import fs from "fs"
 import { log } from 'console';
 
-const app = 'http://localhost:3001'
+const app = 'http://localhost:3000'
 
 const rawdata = fs.readFileSync("tests/libro.test.json");
 const tests = JSON.parse(rawdata);

@@ -12,7 +12,7 @@ const rawdata = fs.readFileSync("tests/persona.test.json");
 const tests = JSON.parse(rawdata);
 
 let persona = {}
-const app = 'http://localhost:3001'
+const app = 'http://localhost:3000'
 
 describe('POST persona/', () => {
     it('Sin nombre', async () => {

@@ -20,11 +20,19 @@ export class Persona {
         if (!request.email)
             this.email = ""
 
-        if (![0, 1].includes(request.tipo))
-            throw new ValidationError("El tipo debe ser 0(autor) o 1(ilustrador)'");
+        //if (![0, 1].includes(request.tipo))
+            //throw new ValidationError("El tipo debe ser 0(autor) o 1(ilustrador)'");
     }
 
     async insert() {
+        let exists = (await conn.query(`
+            SELECT id from ${table_name}
+            WHERE dni == ${this.dni}
+        `))[0].length >= 0;
+
+        if (exists)
+            throw new Duplicated(`La persona con dni ${this.dni} ya se encuentra cargada`);
+
         let res = (await conn.query(`
             INSERT INTO ${table_name} SET ?`
         , this))[0];

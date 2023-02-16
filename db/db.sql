@@ -14,9 +14,9 @@ CREATE TABLE libros(
 
 CREATE TABLE personas(
     id INT(11) NOT NULL AUTO_INCREMENT,
+    dni VARCHAR(8) NOT NULL,
     nombre VARCHAR(60) NOT NULL,
-    email  VARCHAR(60) DEFAULT "",
-    tipo TINYINT DEFAULT 0, 
+    email  VARCHAR(60) DEFAULT "", 
 
     is_deleted BOOLEAN DEFAULT false,
 
@@ -26,6 +26,7 @@ CREATE TABLE personas(
 CREATE TABLE libros_personas(
     isbn VARCHAR(13) NOT NULL,
     id_persona INT(11) NOT NULL,
+    tipo TINYINT DEFAULT 0,
     porcentaje FLOAT DEFAULT 0,
 
     FOREIGN KEY (isbn) REFERENCES libros(isbn),

@@ -61,6 +61,30 @@ export class Libro {
         //TODO: actualizar las personas
     }
 
+    /*static async add_personas(isbn, personas){
+        //Agregamos el isbn y convertimos en lista para poder insertar todo junto
+        let persona_libro = personas.map(p => [this.isbn, p.id])
+
+        if (personas.length > 0)
+            await conn.query(`
+                INSERT INTO libros_personas 
+                (isbn, id_persona) VALUES ?`, 
+                [persona_libro]
+            )
+    }
+    
+    static async remove_personas(isbn, personas){
+        //Agregamos el isbn y convertimos en lista para poder insertar todo junto
+        let persona_libro = personas.map(p => [this.isbn, p.id])
+
+        if (personas.length > 0)
+            await conn.query(`
+                DELETE FROM libros_personas
+                WHERE isbn = ${isbn} 
+                AND id_persona = ${personas[0].id}`
+            )
+    }*/
+
     static async delete(isbn){
         await conn.query(`
             DELETE FROM libros_personas
