@@ -26,7 +26,7 @@ CREATE TABLE personas(
 CREATE TABLE libros_personas(
     isbn VARCHAR(13) NOT NULL,
     id_persona INT(11) NOT NULL,
-    tipo TINYINT DEFAULT 0,
+    tipo TINYINT DEFAULT 0 NOT NULL,
     porcentaje FLOAT DEFAULT 0,
 
     FOREIGN KEY (isbn) REFERENCES libros(isbn),

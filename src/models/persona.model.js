@@ -3,6 +3,7 @@ import {ValidationError, NotFound, NothingChanged, Duplicated} from './errors.js
 
 
 const table_name = "personas";
+const visible_fields = "id, dni, nombre, email";
 
 //TODO: porcentaje de la persona
 export class Persona {
@@ -97,7 +98,7 @@ export class Persona {
 
     static async get_all() {
         let personas = (await conn.query(`
-            SELECT id, dni, nombre, email, tipo FROM ${table_name} 
+            SELECT ${visible_fields} FROM ${table_name} 
             WHERE is_deleted = 0
         `))[0];
             
@@ -106,9 +107,11 @@ export class Persona {
 
     static async get_all_by_tipo(tipo) {
         let personas = (await conn.query(`
-            SELECT id, nombre, email, tipo FROM ${table_name} 
-            WHERE tipo=${tipo}
-            AND is_deleted = 0
+            SELECT ${visible_fields} FROM ${table_name} 
+            INNER JOIN libros_personas
+                ON id_persona=id
+            WHERE is_deleted = 0
+            GROUP BY id
         `))[0];
             
         return personas;
@@ -116,7 +119,7 @@ export class Persona {
 
     static async get_by_id(id) {
         let response = (await conn.query(`
-            SELECT id, dni, nombre, email, tipo FROM ${table_name} 
+            SELECT ${visible_fields} FROM ${table_name} 
             WHERE id=${id}
             AND is_deleted = 0
         `))[0];

@@ -39,6 +39,8 @@ LibroController.create = async (req, res) => {
         
         Libro.validate(req.body);                      //Validar la request
 
+        await Libro.is_duplicated(req.body.isbn);
+
         const {indb, not_indb} = parse_req(req.body);  //Parsear la request
 
         //Validar los datos de las personas que no estan en la DB
@@ -48,25 +50,28 @@ LibroController.create = async (req, res) => {
 
         //Validar que los ids existan en la DB
         for (let i in indb){
-            let persona = await Persona.get_by_id(indb[i].id, indb[i].tipo);
+            let persona = await Persona.get_by_id(indb[i].id);
+            persona.tipo = indb[i].tipo;
             personas_data.push(persona); //Cargar la data de las personas con esas IDs
+            console.log("indb tipo:", personas_data.tipo);
         }
-
+        
         //Insertar cada persona en la base de datos
         for (let i in not_indb){
             let persona = new Persona(not_indb[i])
             await persona.insert();
 
-            indb.push({id: persona.id, tipo: persona.tipo}); //Agregar las personas cargadas a la lista de lo que ya esta en db
+            indb.push({id: persona.id, tipo: not_indb[i].tipo}); //Agregar las personas cargadas a la lista de lo que ya esta en db
         }
 
         //Unir la lista de personas insertadas con las que ya existian
         personas_data = personas_data.concat(not_indb);
-        console.log(personas_data);
+        console.log("personas_data:", personas_data);
 
         //Crear el libro
         const libro = new Libro(req.body);
 
+        console.log("INDB", indb);
         await libro.insert(indb);
 
         return res.status(201).json({

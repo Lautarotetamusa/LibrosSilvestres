@@ -1,6 +1,6 @@
 import {conn} from "../db.js"
 import {Persona} from "./persona.model.js"
-import {ValidationError, NotFound} from './errors.js'
+import {ValidationError, NotFound, Duplicated} from './errors.js'
 
 const table_name = "libros"
 
@@ -27,23 +27,24 @@ export class Libro {
             throw new ValidationError("El precio es obligatorio")
     }
 
+    static async is_duplicated(isbn){
+        let res =  (await conn.query(`
+            SELECT COUNT(isbn) as count from ${table_name}
+            WHERE ${table_name}.isbn = ${isbn}
+            AND is_deleted = 0
+        `))[0][0].count;
+
+        console.log("RES", res);
+
+        if (res > 0)
+            throw new Duplicated(`El libro con isbn ${isbn} ya existe`);
+    }
 
     async insert(personas) {
-        //Agregamos el isbn y convertimos en lista para poder insertar todo junto
-        console.log("personas:", personas)
-        let persona_libro = personas.map(p => [this.isbn, p.id])
-        console.log("personas_libro: ", persona_libro)
-
         //Insert Libro in table libros
-        await conn.query("INSERT INTO libros SET ?", this)
+        await conn.query("INSERT INTO libros SET ?", this);
 
-        //Insertar los autores e ilustradores del libro en la tabla libros_personas
-        if (personas.length > 0)
-            await conn.query(`
-                INSERT INTO libros_personas 
-                (isbn, id_persona) VALUES ?`, 
-                [persona_libro]
-            ) 
+        await Libro.add_personas(this.isbn, personas);
     }
     
     static async update(isbn, data){
@@ -61,14 +62,16 @@ export class Libro {
         //TODO: actualizar las personas
     }
 
-    /*static async add_personas(isbn, personas){
+    static async add_personas(isbn, personas){
         //Agregamos el isbn y convertimos en lista para poder insertar todo junto
-        let persona_libro = personas.map(p => [this.isbn, p.id])
+        let persona_libro = personas.map(p => [isbn, p.id, p.tipo])
+        //TODO: Persona_libro = [...new Set(persona_libro)]; //Sacamos los duplicados
+        console.log("personas_libro:", persona_libro);
 
         if (personas.length > 0)
             await conn.query(`
                 INSERT INTO libros_personas 
-                (isbn, id_persona) VALUES ?`, 
+                (isbn, id_persona, tipo) VALUES ?`, 
                 [persona_libro]
             )
     }
@@ -83,7 +86,7 @@ export class Libro {
                 WHERE isbn = ${isbn} 
                 AND id_persona = ${personas[0].id}`
             )
-    }*/
+    }
 
     static async delete(isbn){
         await conn.query(`
@@ -117,7 +120,7 @@ export class Libro {
 
     static async get_personas(isbn) {
         let personas = (await conn.query(`
-            SELECT id, nombre, email, tipo
+            SELECT id, nombre, email, libros_personas.tipo
             FROM personas 
             INNER JOIN libros_personas
             INNER JOIN ${table_name}
