@@ -1,5 +1,5 @@
 import {conn} from "../db.js"
-import {ValidationError, NotFound, NothingChanged} from './errors.js'
+import {ValidationError, NotFound, NothingChanged, Duplicated} from './errors.js'
 
 
 const table_name = "personas";
@@ -10,7 +10,12 @@ export class Persona {
     constructor(persona) {
         this.nombre = persona.nombre;
         this.email  = persona.email;
-        this.tipo   = persona.tipo;
+
+        if ('dni' in persona)
+            this.dni = persona.dni;
+        
+        if ('id' in persona)
+            this.id = Number(persona.id);
     }
     
     static validate(request) {
@@ -20,18 +25,28 @@ export class Persona {
         if (!request.email)
             this.email = ""
 
+        if (!request.dni)
+            throw new ValidationError("El dni es obligatorio");
+
         //if (![0, 1].includes(request.tipo))
             //throw new ValidationError("El tipo debe ser 0(autor) o 1(ilustrador)'");
     }
 
-    async insert() {
-        let exists = (await conn.query(`
-            SELECT id from ${table_name}
-            WHERE dni == ${this.dni}
-        `))[0].length >= 0;
+    async is_duplicated(){
+        let res =  (await conn.query(`
+            SELECT COUNT(id) as count from ${table_name}
+            WHERE dni = ${this.dni}
+            AND is_deleted = 0
+        `))[0][0].count;
 
-        if (exists)
+        console.log(res > 0);
+        return res > 0;
+    }
+
+    async insert() {
+        if (await this.is_duplicated()){
             throw new Duplicated(`La persona con dni ${this.dni} ya se encuentra cargada`);
+        }
 
         let res = (await conn.query(`
             INSERT INTO ${table_name} SET ?`
@@ -40,23 +55,23 @@ export class Persona {
         this.id = res.insertId;
     }
 
-    async update(id) {
+    async update() {
+        if (this.dni){
+            if (await this.is_duplicated())
+                throw new Duplicated(`La persona con dni ${this.dni} ya se encuentra cargada`);
+        }
+
         let res = (await conn.query(`
             UPDATE ${table_name} SET ?
-            WHERE id=${id}
+            WHERE id=${this.id}
             AND is_deleted = 0`
         , this))[0];
 
         if (res.affectedRows == 0)
-            throw new NotFound(`No se encuentra la persona con id ${id}`);
+            throw new NotFound(`No se encuentra la persona con id ${this.id}`);
 
         if (res.changedRows == 0)
             throw new NothingChanged('Ningun valor es distinto a lo que ya existia en la base de datos');
-
-        return {
-            id: res.insertedId,
-            ...this
-        };
     }
 
     static async delete(id){
@@ -80,7 +95,16 @@ export class Persona {
             throw new NotFound(`No se encuentra la persona con id ${id}`);
     }
 
-    static async get_all(tipo) {
+    static async get_all() {
+        let personas = (await conn.query(`
+            SELECT id, dni, nombre, email, tipo FROM ${table_name} 
+            WHERE is_deleted = 0
+        `))[0];
+            
+        return personas;
+    }
+
+    static async get_all_by_tipo(tipo) {
         let personas = (await conn.query(`
             SELECT id, nombre, email, tipo FROM ${table_name} 
             WHERE tipo=${tipo}
@@ -90,16 +114,15 @@ export class Persona {
         return personas;
     }
 
-    static async get_by_id(id, tipo) {
+    static async get_by_id(id) {
         let response = (await conn.query(`
-            SELECT id, nombre, email, tipo FROM ${table_name} 
-            WHERE tipo=${tipo} 
-            AND id=${id}
+            SELECT id, dni, nombre, email, tipo FROM ${table_name} 
+            WHERE id=${id}
             AND is_deleted = 0
         `))[0];
 
         if (!response.length)
-            throw new NotFound(`El ${Persona.str_tipos[tipo]} con id ${id} no se encontro`);
+            throw new NotFound(`La persona con id ${id} no se encontro`);
 
         return response[0];
     }

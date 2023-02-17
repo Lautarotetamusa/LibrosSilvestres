@@ -22,7 +22,13 @@ app.use('/cliente', ClienteRouter);
 
 app.use('/venta', VentaRouter);
 
-app.listen(port, () => console.log(`Example app listening on port ${port}!`))
+//Cualquier otra ruta no especificada
+app.use('*', (req, res) => res.status(404).json({
+    success: false,
+    error: "Esta ruta no hace nada negro"
+}));
+
+app.listen(port, () => console.log(`Libros Silvestres start in port ${port}!`))
 
 app.use(function(err, req, res, next) {
     console.error(err.stack);

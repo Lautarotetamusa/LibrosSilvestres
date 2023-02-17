@@ -22,10 +22,18 @@ export class NothingChanged extends Error {
     }
 }
 
+export class Duplicated extends Error {
+    constructor(message){
+        super(message);
+        this.name = "Duplicated";
+        this.status = 404;
+    }
+}
 
 
 export function parse_error(res, error){
-    if (error instanceof ValidationError || error instanceof NotFound || error instanceof NothingChanged)
+    console.log(error);
+    if (error instanceof ValidationError || error instanceof NotFound || error instanceof NothingChanged || error instanceof Duplicated)
         return res.status(error.status).json({
             success: false,
             error: error.message

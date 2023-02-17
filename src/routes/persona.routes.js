@@ -7,9 +7,9 @@ const router = express.Router();
 
 router.post('/', PersonaController.create);
 
-router.get('/:tipo', PersonaController.get_all);
+router.get('/', PersonaController.get_all);
 
-router.get('/:tipo/:id', PersonaController.get_one);
+router.get('/:id', PersonaController.get_one);
 
 router.put('/:id', PersonaController.update)
 

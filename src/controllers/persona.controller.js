@@ -25,7 +25,7 @@ PersonaController.create = async (req, res) => {
 
 PersonaController.update = async (req, res) => {
     try {
-        const persona = new Persona(req.body);
+        const persona = new Persona({...req.body, id:req.params.id});
     
         if (Object.keys(persona).length === 0 && persona.constructor === Object) //Si persona es un objeto vacio
             return res.status(204).json({
@@ -33,7 +33,7 @@ PersonaController.update = async (req, res) => {
                 message: "No hay ningun campo para actualizar",
             })
 
-        await persona.update(req.params.id);
+        await persona.update();
 
         return res.status(201).json({
             success:true,
@@ -61,19 +61,24 @@ PersonaController.delete = async (req, res) => {
 }
 
 PersonaController.get_all = async (req, res) => {
-    let params = req.params;
+    let params = req.query;
+    let personas;
 
-    if (!params.tipo) return res.status(400).json({
-        message: "Es necesesario pasar un tipo"
-    }); 
-    if(!(params.tipo in Persona.tipos)) return res.status(400).json({
-        message: `El tipo pasado no es correcto (${Persona.str_tipos})`
-    })
-    
     try {
-        let personas = await Persona.get_all(Persona.tipos[params.tipo])
-        
-        res.json(personas)
+
+        if ('tipo' in params){
+            if(!(params.tipo in Persona.tipos)) return res.status(400).json({
+                success: false,
+                message: `El tipo pasado no es correcto (${Persona.str_tipos})`
+            })
+
+            personas = await Persona.get_all_by_tipo(Persona.tipos[params.tipo])
+        }else {
+            personas = await Persona.get_all()
+        }
+
+        return res.json(personas);
+
     } catch (error) {
         return parse_error(res, error);
     }
@@ -83,11 +88,12 @@ PersonaController.get_one = async (req, res) => {
     let params = req.params;
 
     if (!params.id) return res.status(400).json({
+        success: false,
         message: "Se nececita pasar un id"
     });
 
     try {
-        const persona  = await Persona.get_by_id(params.id, Persona.tipos[params.tipo]);
+        const persona  = await Persona.get_by_id(params.id);
         
         persona.libros = await Persona.get_libros(params.id)
 
