@@ -15,6 +15,11 @@ router.get('', LibroController.get_all);
 
 router.put('/:isbn', LibroController.update);
 
+//Actualizar las personas del libro
+router.post('/:isbn/personas', LibroController.update_personas);
+router.put('/:isbn/personas', LibroController.update_personas);
+router.delete('/:isbn/personas', LibroController.update_personas);
+
 router.delete('/:isbn', LibroController.delete);
 
 

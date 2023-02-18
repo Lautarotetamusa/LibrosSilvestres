@@ -1,5 +1,6 @@
 import {conn} from "../db.js"
 import {ValidationError, NotFound, NothingChanged, Duplicated} from './errors.js'
+import { Libro } from "./libro.model.js";
 
 
 const table_name = "personas";
@@ -44,6 +45,15 @@ export class Persona {
         return res > 0;
     }
 
+    static async exists(dni){
+        let res =  (await conn.query(`
+            SELECT COUNT(id) as count from ${table_name}
+            WHERE dni = ${dni}
+            AND is_deleted = 0
+        `))[0][0].count;
+        return res > 0;
+    }
+
     async insert() {
         if (await this.is_duplicated()){
             throw new Duplicated(`La persona con dni ${this.dni} ya se encuentra cargada`);
@@ -56,11 +66,15 @@ export class Persona {
         this.id = res.insertId;
     }
 
-    async update() {
-        if (this.dni){
-            if (await this.is_duplicated())
-                throw new Duplicated(`La persona con dni ${this.dni} ya se encuentra cargada`);
+    async update(req) {
+        if (req.dni && req.dni != this.dni){
+            if (await Persona.exists(req.dni))
+                throw new Duplicated(`La persona con dni ${req.dni} ya se encuentra cargada`);
         }
+
+        this.nombre = req.nombre || this.nombre;
+        this.email  = req.email  || this.email;
+        this.dni    = req.dni    || this.dni;
 
         let res = (await conn.query(`
             UPDATE ${table_name} SET ?
@@ -132,7 +146,8 @@ export class Persona {
 
     static async get_libros(id){
         let libros = (await conn.query(`
-            SELECT libros.* FROM libros
+            SELECT libros.*, libros_personas.tipo 
+            FROM libros
             INNER JOIN libros_personas
                 ON libros_personas.id_persona=${id}
             INNER JOIN ${table_name}

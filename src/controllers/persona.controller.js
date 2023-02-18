@@ -25,7 +25,7 @@ PersonaController.create = async (req, res) => {
 
 PersonaController.update = async (req, res) => {
     try {
-        const persona = new Persona({...req.body, id:req.params.id});
+        const persona = new Persona(await Persona.get_by_id(req.params.id));
     
         if (Object.keys(persona).length === 0 && persona.constructor === Object) //Si persona es un objeto vacio
             return res.status(204).json({
@@ -33,7 +33,7 @@ PersonaController.update = async (req, res) => {
                 message: "No hay ningun campo para actualizar",
             })
 
-        await persona.update();
+        await persona.update(req.body);
 
         return res.status(201).json({
             success:true,

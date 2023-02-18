@@ -1,6 +1,6 @@
 import {conn} from "../db.js"
 import {Persona} from "./persona.model.js"
-import {ValidationError, NotFound, Duplicated} from './errors.js'
+import {ValidationError, NotFound, Duplicated, NothingChanged} from './errors.js'
 
 const table_name = "libros"
 
@@ -58,34 +58,56 @@ export class Libro {
 
         if (res.affectedRows == 0)
             throw new NotFound(`No se encuentra el libro con isbn ${isbn}`);
-
-        //TODO: actualizar las personas
     }
 
     static async add_personas(isbn, personas){
-        //Agregamos el isbn y convertimos en lista para poder insertar todo junto
-        let persona_libro = personas.map(p => [isbn, p.id, p.tipo])
-        //TODO: Persona_libro = [...new Set(persona_libro)]; //Sacamos los duplicados
-        console.log("personas_libro:", persona_libro);
+        let persona_libro = personas.map(p => `('${isbn}', ${p.id}, ${p.tipo}, ${p.porcentaje || 0})`).join(', ');  //((isbn, id, tipo), (isbn, id, tipo) ...) String
 
+        console.log("persona_lbro", persona_libro);
+
+        //Validar si la persona ya trabaja en este libro
+        let res = (await conn.query(`
+            SELECT id_persona, tipo 
+            FROM libros_personas 
+            WHERE (isbn, id_persona, tipo, porcentaje) in (${persona_libro})`
+        ))[0];
+
+        for (let i in res) {
+            throw new Duplicated(`La persona ${res[i].id_persona} ya es un ${Persona.str_tipos[res[i].tipo]} del libro ${isbn}`);
+        }
+        
         if (personas.length > 0)
             await conn.query(`
                 INSERT INTO libros_personas 
-                (isbn, id_persona, tipo) VALUES ?`, 
-                [persona_libro]
+                (isbn, id_persona, tipo, porcentaje) VALUES ${persona_libro}`
             )
+    }
+
+    static async update_personas(isbn, personas){
+
+        for (let i in personas) {
+            let res = (await conn.query(`
+                UPDATE libros_personas 
+                SET porcentaje = ${personas[i].porcentaje || 0}
+                WHERE isbn=${isbn}
+                AND id_persona=${personas[i].id}
+                AND tipo=${personas[i].tipo}`
+            ))[0];
+        }
     }
     
     static async remove_personas(isbn, personas){
-        //Agregamos el isbn y convertimos en lista para poder insertar todo junto
-        let persona_libro = personas.map(p => [this.isbn, p.id])
+        let persona_libro = personas.map(p => `('${isbn}', ${p.id}, ${p.tipo})`).join(', ');  //((isbn, id, tipo), (isbn, id, tipo) ...) String
 
-        if (personas.length > 0)
-            await conn.query(`
+        if (personas.length > 0){
+            let res = (await conn.query(`
                 DELETE FROM libros_personas
-                WHERE isbn = ${isbn} 
-                AND id_persona = ${personas[0].id}`
-            )
+                WHERE (isbn, id_persona, tipo) in (${persona_libro})`
+            ))[0];
+
+            if (res.affectedRows == 0)
+                throw new NotFound(`Ninguna persona pasada trabaja en este libro con el tipo pasado`)
+        }
     }
 
     static async delete(isbn){
@@ -120,11 +142,11 @@ export class Libro {
 
     static async get_personas(isbn) {
         let personas = (await conn.query(`
-            SELECT id, nombre, email, libros_personas.tipo
+            SELECT id, nombre, email, libros_personas.tipo, libros_personas.porcentaje
             FROM personas 
             INNER JOIN libros_personas
             INNER JOIN ${table_name}
-            ON personas.id  = libros_personas.id_persona
+                ON personas.id  = libros_personas.id_persona
             AND ${table_name}.isbn = libros_personas.isbn
             WHERE ${table_name}.isbn = ${isbn}
             AND ${table_name}.is_deleted = 0

@@ -104,9 +104,61 @@ LibroController.delete = async(req, res) => {
 
 LibroController.update = async(req, res) => {
     try {
-        let libro = await Libro.update(req.params.isbn, req.body);
+        await Libro.update(req.params.isbn, req.body);
 
-        return res.json({message: `Libro con isbn ${req.params.isbn} actualizado correctamente`})
+        return res.json({
+            success: true,
+            message: `Libro con isbn ${req.params.isbn} actualizado correctamente`
+        })
+    } catch (error) {
+        return parse_error(res, error);
+    }
+}
+
+LibroController.update_personas = async(req, res) => {
+    if (!Array.isArray(req.body)) return res.status(400).json({
+        success: false,
+        error: "El body debe ser del tipo Array"
+    });
+    let personas = req.body;
+
+    try {
+        for (let i in personas) {
+            if (!('tipo' in personas[i])) return res.status(400).json({
+                success: false,
+                error: "Se debe pasar 'tipo' en todas las personas"
+            });
+            
+            if (!('id' in personas[i])) return res.status(400).json({
+                success: false,
+                error: "Se debe pasar 'id' en todas las personas"
+            });     
+            
+            if (!Persona.str_tipos[personas[i].tipo]) return res.status(400).json({
+                success: false,
+                error: `Un tipo pasado no es correcto [0, 1]`
+            });
+    
+            await Persona.get_by_id(personas[i].id);
+        }
+
+        let libro = await Libro.get_by_isbn(req.params.isbn);
+
+        //En este punto ya está todo validado
+        if (req.method == 'POST')
+            await Libro.add_personas(req.params.isbn, personas);
+        else if(req.method == 'DELETE')
+            await Libro.remove_personas(req.params.isbn, personas);
+
+        let {autores, ilustradores} = await Libro.get_personas(libro.isbn);
+        libro.autores = autores;
+        libro.ilustradores = ilustradores;
+
+        return res.status(201).json({
+            success: true,
+            message: `Personas ${req.method == 'POST' ? 'agregadas':'borradas'} con exito`,
+            data: libro
+        });
     } catch (error) {
         return parse_error(res, error);
     }
@@ -116,12 +168,11 @@ LibroController.get_one = async(req, res) => {
     try {
         let libro = await Libro.get_by_isbn(req.params.isbn)
 
-        let personas = await Libro.get_personas(req.params.isbn)
+        let {autores, ilustradores} = await Libro.get_personas(libro.isbn);
+        libro.autores = autores;
+        libro.ilustradores = ilustradores;
 
-        libro.autores = personas.autores;
-        libro.ilustradores = personas.ilustradores;
-
-        res.json(libro)
+        return res.json(libro);
     } catch (error) {
         return parse_error(res, error);
     }

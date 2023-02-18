@@ -17,7 +17,7 @@ let persona = {}
 const app = 'http://localhost:3000'
 
 /*
-    - Creamos dos personas, una con dni 43491979 y otra 43491980
+    - Creamos dos personas, una con dni 11111111 y otra 22222222
     - Intentamos crear otra con el mismo dni y obtenemos un error
     - Obtenemos una persona con un id q no existe y nos da un error
     - Verificamos que la persona creada esté en la lista
@@ -47,7 +47,7 @@ describe('POST persona/', () => {
             .post('/persona/')
             .send(persona);
         
-        persona.dni = '43491979';
+        persona.dni = '11111111';
         
         chai.expect(res.status).to.equal(400);
         chai.expect(res.body.success).to.be.false;
@@ -61,12 +61,12 @@ describe('POST persona/', () => {
             .send(persona);
 
         // Creo otra persona para despues
-        persona.dni = '43491980';
+        persona.dni = '22222222';
         await request(app)
             .post('/persona/')
             .send(persona);
 
-        persona.dni = '43491979';
+        persona.dni = '11111111';
         persona.id = res.body.data.id;
         
         chai.expect(res.status).to.equal(201);
@@ -121,7 +121,7 @@ describe('PUT persona/{id}', () => {
     });
 
     it('Actualizar a un dni que ya está cargado', async () => {
-        persona.dni = '43491980';
+        persona.dni = '22222222';
         const res = await request(app)
             .put('/persona/'+persona.id)
             .send(persona);
@@ -132,13 +132,15 @@ describe('PUT persona/{id}', () => {
     });
 
     it('Success', async () => {
-        delete persona.dni;
+        persona.dni='11111111'
         persona.nombre = 'TestTest';
+        persona.este_campo_no_va = "anashe23";
 
         const res = await request(app)
             .put('/persona/'+persona.id)
             .send(persona);
 
+        delete persona.este_campo_no_va;
         res.body.data.id = persona.id;
         chai.expect(res.status).to.equal(201);
         chai.expect(res.body.data).to.deep.include(persona);
@@ -171,8 +173,8 @@ describe('DELETE /persona/{id}', () => {
     it('HARD DELETE', async () => {
         await conn.query(`
             DELETE FROM personas
-            WHERE dni=43491979
-            OR dni=43491980
+            WHERE dni=11111111
+            OR dni=22222222
         `);
     });
     
