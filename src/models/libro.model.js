@@ -27,6 +27,17 @@ export class Libro {
             throw new ValidationError("El precio es obligatorio")
     }
 
+    static validate_persona(persona){
+        if (!('tipo' in persona)) 
+            throw new ValidationError("Se debe pasar 'tipo' en todas las personas");
+        
+        if (!('id' in persona))
+            throw new ValidationError("Se debe pasar 'id' en todas las personas");
+        
+        if (!Persona.str_tipos[persona.tipo])
+            throw new ValidationError("Un tipo pasado no es correcto [0, 1]");
+    }
+
     static async is_duplicated(isbn){
         let res =  (await conn.query(`
             SELECT COUNT(isbn) as count from ${table_name}
@@ -41,63 +52,73 @@ export class Libro {
     }
 
     async insert(personas) {
-        //Insert Libro in table libros
         await conn.query("INSERT INTO libros SET ?", this);
 
-        await Libro.add_personas(this.isbn, personas);
+        await this.add_personas(personas);
     }
     
-    static async update(isbn, data){
+    async update(req){
         
+        this.titulo = req.titulo || this.titulo;
+        this.precio = req.precio || this.precio;
+        this.fecha_edicion = req.fecha_edicion || this.fecha_edicion;
+
         let res = (await conn.query(`
             UPDATE ${table_name}
             SET ?
-            WHERE isbn=${isbn}
+            WHERE isbn=${this.isbn}
             AND is_deleted = 0
-        `, data))[0];
+        `, this))[0];
 
         if (res.affectedRows == 0)
-            throw new NotFound(`No se encuentra el libro con isbn ${isbn}`);
+            throw new NotFound(`No se encuentra el libro con isbn ${this.isbn}`);
+
+        if (res.changedRows == 0)
+            throw new NothingChanged('Ningun valor es distinto a lo que ya existia en la base de datos');
     }
 
-    static async add_personas(isbn, personas){
-        let persona_libro = personas.map(p => `('${isbn}', ${p.id}, ${p.tipo}, ${p.porcentaje || 0})`).join(', ');  //((isbn, id, tipo), (isbn, id, tipo) ...) String
-
-        console.log("persona_lbro", persona_libro);
-
-        //Validar si la persona ya trabaja en este libro
-        let res = (await conn.query(`
-            SELECT id_persona, tipo 
-            FROM libros_personas 
-            WHERE (isbn, id_persona, tipo, porcentaje) in (${persona_libro})`
-        ))[0];
-
-        for (let i in res) {
-            throw new Duplicated(`La persona ${res[i].id_persona} ya es un ${Persona.str_tipos[res[i].tipo]} del libro ${isbn}`);
-        }
+    async add_personas(personas){
         
-        if (personas.length > 0)
+        if (personas.length > 0){
+            let persona_libro = personas.map(p => `('${this.isbn}', ${p.id}, ${p.tipo}, ${p.porcentaje || 0})`).join(', ');  //((isbn, id, tipo), (isbn, id, tipo) ...) String
+    
+            console.log("persona_lbro", persona_libro);
+    
+            //Validar si la persona ya trabaja en este libro
+            let res = (await conn.query(`
+                SELECT id_persona, tipo 
+                FROM libros_personas 
+                WHERE (isbn, id_persona, tipo, porcentaje) in (${persona_libro})`
+            ))[0];
+    
+            for (let i in res) {
+                throw new Duplicated(`La persona ${res[i].id_persona} ya es un ${Persona.str_tipos[res[i].tipo]} del libro ${this.isbn}`);
+            }
+
             await conn.query(`
                 INSERT INTO libros_personas 
                 (isbn, id_persona, tipo, porcentaje) VALUES ${persona_libro}`
             )
+        }
     }
 
-    static async update_personas(isbn, personas){
+    async update_personas(personas){
 
         for (let i in personas) {
-            let res = (await conn.query(`
-                UPDATE libros_personas 
-                SET porcentaje = ${personas[i].porcentaje || 0}
-                WHERE isbn=${isbn}
-                AND id_persona=${personas[i].id}
-                AND tipo=${personas[i].tipo}`
-            ))[0];
+            if (personas[i].porcentaje){
+                let res = (await conn.query(`
+                    UPDATE libros_personas 
+                    SET porcentaje = ${personas[i].porcentaje}
+                    WHERE isbn=${this.isbn}
+                    AND id_persona=${personas[i].id}
+                    AND tipo=${personas[i].tipo}`
+                ))[0];
+            }
         }
     }
     
-    static async remove_personas(isbn, personas){
-        let persona_libro = personas.map(p => `('${isbn}', ${p.id}, ${p.tipo})`).join(', ');  //((isbn, id, tipo), (isbn, id, tipo) ...) String
+    async remove_personas(personas){
+        let persona_libro = personas.map(p => `('${this.isbn}', ${p.id}, ${p.tipo})`).join(', ');  //((isbn, id, tipo), (isbn, id, tipo) ...) String
 
         if (personas.length > 0){
             let res = (await conn.query(`
@@ -137,10 +158,10 @@ export class Libro {
         if (!response.length)
             throw new NotFound(`El libro con isbn ${isbn} no se encontro`)
 
-        return response[0];
+        return new Libro(response[0]);
     }
 
-    static async get_personas(isbn) {
+    async get_personas() {
         let personas = (await conn.query(`
             SELECT id, nombre, email, libros_personas.tipo, libros_personas.porcentaje
             FROM personas 
@@ -148,14 +169,12 @@ export class Libro {
             INNER JOIN ${table_name}
                 ON personas.id  = libros_personas.id_persona
             AND ${table_name}.isbn = libros_personas.isbn
-            WHERE ${table_name}.isbn = ${isbn}
+            WHERE ${table_name}.isbn = ${this.isbn}
             AND ${table_name}.is_deleted = 0
         `))[0];
 
-        return {
-            "autores":      personas.filter(p => p.tipo == Persona.tipos["autor"]),
-            "ilustradores": personas.filter(p => p.tipo == Persona.tipos["ilustrador"])
-        }
+        this.autores      = personas.filter(p => p.tipo == Persona.tipos.autor);
+        this.ilustradores = personas.filter(p => p.tipo == Persona.tipos.ilustrador);
     }
 
 
@@ -172,10 +191,11 @@ export class Libro {
         `))[0];
 
         for (let i in libros) {
-            let {autores, ilustradores} = await this.get_personas(libros[i].isbn)
+            let libro = new Libro(libros[i])
+            await libro.get_personas();
 
-            libros[i].autores      = autores;
-            libros[i].ilustradores = ilustradores;
+            //libros[i].autores      = autores;
+            //libros[i].ilustradores = ilustradores;
         }
 
         return libros;

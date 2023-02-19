@@ -76,7 +76,7 @@ LibroController.create = async (req, res) => {
 
         return res.status(201).json({
             success: true,
-            message: "Libro creado correctamente",
+            message: `Libro con isbn ${req.body.isbn} creado correctamente`,
             data: {
                 ...libro,
                 autores:      personas_data.filter(p => p.tipo == Persona.tipos["autor"]),
@@ -104,61 +104,56 @@ LibroController.delete = async(req, res) => {
 
 LibroController.update = async(req, res) => {
     try {
-        await Libro.update(req.params.isbn, req.body);
+        let libro = new Libro(await Libro.get_by_isbn(req.params.isbn))
+        await libro.update(req.body);
 
-        return res.json({
+        return res.status(201).json({
             success: true,
-            message: `Libro con isbn ${req.params.isbn} actualizado correctamente`
+            message: `Libro con isbn ${req.params.isbn} actualizado correctamente`,
+            data: libro
         })
     } catch (error) {
         return parse_error(res, error);
     }
 }
 
-LibroController.update_personas = async(req, res) => {
-    if (!Array.isArray(req.body)) return res.status(400).json({
-        success: false,
-        error: "El body debe ser del tipo Array"
-    });
-    let personas = req.body;
+LibroController.manage_personas = async(req, res) => {
+    let personas = Array.isArray(req.body) ? req.body : [req.body]; //Hacemos que personas sea un array si o si
 
+    let code = 201
+    let message = 'creada'
+    
     try {
         for (let i in personas) {
-            if (!('tipo' in personas[i])) return res.status(400).json({
-                success: false,
-                error: "Se debe pasar 'tipo' en todas las personas"
-            });
-            
-            if (!('id' in personas[i])) return res.status(400).json({
-                success: false,
-                error: "Se debe pasar 'id' en todas las personas"
-            });     
-            
-            if (!Persona.str_tipos[personas[i].tipo]) return res.status(400).json({
-                success: false,
-                error: `Un tipo pasado no es correcto [0, 1]`
-            });
-    
-            await Persona.get_by_id(personas[i].id);
+            Libro.validate_persona(personas[i]);
+            await Persona.get_by_id(personas[i].id); //Check if the person exists
         }
 
         let libro = await Libro.get_by_isbn(req.params.isbn);
 
-        //En este punto ya está todo validado
-        if (req.method == 'POST')
-            await Libro.add_personas(req.params.isbn, personas);
-        else if(req.method == 'DELETE')
-            await Libro.remove_personas(req.params.isbn, personas);
+        switch (req.method ) {
+            case "POST":
+                await libro.add_personas(personas);
+                break;
+            case "PUT":
+                await libro.update_personas(personas);
+                message = 'actualizada'
+                break;
+            case "DELETE":
+                await libro.remove_personas(personas);
+                message = 'borrada'
+                code = 200
+                break;
+        }
+            
+        await libro.get_personas();
 
-        let {autores, ilustradores} = await Libro.get_personas(libro.isbn);
-        libro.autores = autores;
-        libro.ilustradores = ilustradores;
-
-        return res.status(201).json({
+        return res.status(code).json({
             success: true,
-            message: `Personas ${req.method == 'POST' ? 'agregadas':'borradas'} con exito`,
+            message: `Personas ${message} con exito`,
             data: libro
         });
+
     } catch (error) {
         return parse_error(res, error);
     }
@@ -167,11 +162,7 @@ LibroController.update_personas = async(req, res) => {
 LibroController.get_one = async(req, res) => {
     try {
         let libro = await Libro.get_by_isbn(req.params.isbn)
-
-        let {autores, ilustradores} = await Libro.get_personas(libro.isbn);
-        libro.autores = autores;
-        libro.ilustradores = ilustradores;
-
+        await libro.get_personas();
         return res.json(libro);
     } catch (error) {
         return parse_error(res, error);
@@ -179,12 +170,8 @@ LibroController.get_one = async(req, res) => {
 }
 
 LibroController.get_all = async(req, res) => {
-
-    let page = req.query.page || 0;
-
     try {
-        let libros = await Libro.get_all(page);
-
+        let libros = await Libro.get_all(req.query.page || 0);
         res.json(libros);
     } catch (error) {
         return parse_error(res, error);

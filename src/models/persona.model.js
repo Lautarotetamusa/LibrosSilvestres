@@ -29,20 +29,6 @@ export class Persona {
 
         if (!request.dni)
             throw new ValidationError("El dni es obligatorio");
-
-        //if (![0, 1].includes(request.tipo))
-            //throw new ValidationError("El tipo debe ser 0(autor) o 1(ilustrador)'");
-    }
-
-    async is_duplicated(){
-        let res =  (await conn.query(`
-            SELECT COUNT(id) as count from ${table_name}
-            WHERE dni = ${this.dni}
-            AND is_deleted = 0
-        `))[0][0].count;
-
-        console.log(res > 0);
-        return res > 0;
     }
 
     static async exists(dni){
@@ -55,7 +41,7 @@ export class Persona {
     }
 
     async insert() {
-        if (await this.is_duplicated()){
+        if (await Persona.exists(this.dni)){
             throw new Duplicated(`La persona con dni ${this.dni} ya se encuentra cargada`);
         }
 
@@ -125,6 +111,7 @@ export class Persona {
             INNER JOIN libros_personas
                 ON id_persona=id
             WHERE is_deleted = 0
+            AND libros_personas.tipo = ${tipo}
             GROUP BY id
         `))[0];
             
