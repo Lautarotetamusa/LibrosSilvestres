@@ -104,7 +104,7 @@ LibroController.delete = async(req, res) => {
 
 LibroController.update = async(req, res) => {
     try {
-        let libro = new Libro(await Libro.get_by_isbn(req.params.isbn))
+        let libro = await Libro.get_by_isbn(req.params.isbn);
         await libro.update(req.body);
 
         return res.status(201).json({
