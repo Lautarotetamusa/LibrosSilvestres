@@ -10,10 +10,10 @@
 ## Personas
 
 #### Lista de autores
-`GET /persona/autor`
+`GET /persona/?tipo=autor`
 
 #### Lista de ilustradores
-`GET /persona/ilustrador`
+`GET /persona/?tipo=ilustrador`
 
 #### Dar de alta persona
 `POST /persona`
@@ -21,25 +21,25 @@
 {  
   "nombre": "agustin1",
   "email": "agus@gmail.com",
-  "tipo": 0 //tiene que ser 0(autor) o 1(ilustrador)
+  "dni": 43491979
 }
 ```
+Si el dni ya se encuentra cargado nos devuelve un error del tipo 404
+Nombre e dni son campos obligatorios
 
 #### Obtener persona con id
-Autor
-`GET /persona/autor/{id}`
-
-Ilustrador
-`GET /persona/ilustrador/{id}`
+`GET /persona/{id}`
+Si no se encuentra devuelve un error 404 NotFound
 
 #### Actualizar persona con id
 `PUT /persona/{id}`
 ```json
 {
-  "nombre": "agustin1",
-  "tipo": 1
+  "nombre": "agustin1"
 }
 ```
+Si no se encuentra devuelve un error 404 NotFound
+
 #### borrar persona con id {id}
 `DELETE /persona/{id}`
 
@@ -48,7 +48,7 @@ Ilustrador
 #### Lista de libros
 `GET /libro?page=1`
 
-Devuelve 10 libros, si página es 1 entonces nos trae los primeros 10 libros y asi
+Devuelve 10 libros, si page es 1 entonces nos trae los primeros 10 libros y asi
 
 #### Crear libro
 `POST /libro`
@@ -73,13 +73,15 @@ Pasar las personas directamente cuando lo creamos
   "autores": [
     {
       "nombre": "Carlos",
-      "email": "carlos@gmail.com"
+      "email": "carlos@gmail.com",
+      "dni": 43491979
     }
   ],
   "ilustradores": [
     {
       "nombre": "Juana",
-      "email": "juana@gmail.com"
+      "email": "juana@gmail.com",
+      "dni": 11111111
     },
     {
       "id": 3 //id de un ilustrador existente
@@ -87,9 +89,13 @@ Pasar las personas directamente cuando lo creamos
   ]
 }
 ```
+Valida campos obligatorios de las personas y del libro
+Si el dni de alguna persona ya esta cargado devuelve un error 404 NotFound
+Si algun id de una persona pasado no existe devuelve un error 404 NotFound
 
 #### Obtener libro por isbn
 `GET /libro/{isbn}`
+Devuelve la data del libro y las personas relacionadas con este
 
 #### Actualizar libro por isbn
 `PUT /libro{isbn}`
