@@ -53,6 +53,30 @@ describe('Crear libro POST /libro', function () {
         chai.expect(res.body.success).to.be.true;
     });
 
+    it('Insertar misma persona dos veces', async () => {
+
+        //Get real persons from the table
+        let personas   = (await request(app).get('/persona/')).body;
+
+        personas = [{
+            id: personas.at(-1).id,
+            porcentaje: 20.1,
+            tipo: 0
+        },
+        {
+            id: personas.at(-1).id,
+            porcentaje: 0,
+            tipo: 0
+        }]
+
+        const res = await request(app)
+            .post(`/libro/${libro.isbn}/personas`)
+            .send(personas);
+
+        //console.log(res.body);
+        chai.expect(res.status).to.equal(201);
+    });
+
     it('Insertar personas', async () => {
 
         //Get real persons from the table
@@ -130,6 +154,28 @@ describe('Actualizar libro PUT /libro/:isbn', function () {
 
         chai.expect(res.status).to.equal(201);
         chai.expect(res.body.success).to.be.true;
+    });
+
+    it('Actualizamos una persona que no esta en el libro', async () => {
+        const res = await request(app)
+            .put('/libro/'+libro.isbn+'/personas')
+            .send(libro.autores);
+
+        //console.log(res.body);
+        chai.expect(res.status).to.equal(201);
+        chai.expect(res.body.success).to.be.true;
+    });
+
+    it('Actualizamos una persona', async () => {
+        let autor_copy = JSON.parse(JSON.stringify(libro.autores[0]));
+        autor_copy.id = -1;
+        const res = await request(app)
+            .put('/libro/'+libro.isbn+'/personas')
+            .send(autor_copy);
+
+        //console.log(res.body);
+        chai.expect(res.status).to.equal(404);
+        chai.expect(res.body.success).to.be.false;
     });
 });
 

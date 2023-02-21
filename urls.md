@@ -46,10 +46,24 @@ Ilustrador
 ## Libros
 
 #### Lista de libros
-`GET /libro`
+`GET /libro?page=1`
+
+Devuelve 10 libros, si página es 1 entonces nos trae los primeros 10 libros y asi
 
 #### Crear libro
 `POST /libro`
+
+Cargar los datos
+```json
+{
+  "titulo": "Breviario",
+  "isbn": "9876543212",
+  "precio": 4500, 
+  "fecha_edicion": "2023-01-02",
+}
+```
+
+Pasar las personas directamente cuando lo creamos
 ```json
 {
   "titulo": "Breviario",
@@ -82,13 +96,82 @@ Ilustrador
 ```json
 {
   "titulo": "Breviario",
-  "precio": 4500
+  "precio": 4500,
+  "stock": 10
 }
 ```
-No se pueden actualizar las personas de los libros todavia lo tengo que agregar.
+Los campos que se pueden actualizar son
+stock
+precio
+titulo
+fecha_edicion
+
+#### Agregar personas a un libro
+`POST /libro/{isbn}/personas`
+
+Lista
+```json
+[
+  {
+    "id": 500,
+    "tipo": 0,
+    "porcentaje": 25, //si no se pasa es 0 por default
+  },
+  {
+    "id": 500,
+    "tipo": 0,
+  }
+]
+```
+Devuelve error en caso de no encontrar a la persona o que no exista el libro
+Si intentamos agregar una persona que ya esta en ese libro, no devolverá ningun error pero no hará nada
+
+#### Borrar una persona de un libro
+
+`DELETE /libro/{isbn}/personas`
+
+```json
+[
+  {
+    "id": 500,
+    "tipo": 0,
+  },
+  {
+    "id": 499,
+    "tipo": 1,
+  }
+]
+```
+Borra la persona de tipo 0(autor) e id 500 y la persona de id 499 y tipo 1(ilustrador)
+
+Si ninguna persona trabaja en el libro con el tipo pasado devuelve un error 404
+Si encuentra al menos una borra solo la/s encontradas y devuelve codigo 200
+
+#### Actualizar una persona de un libro
+`PUT /libro/{isbn}/personas`
+
+```json
+[
+  {
+    "id": 500,
+    "porcentaje": 25,
+    "tipo": 0
+  },
+  {
+    "id": 499,
+    "tipo": 1,
+    "porcentaje": 20
+  }
+]
+```
+Solo se puede actualizar el porcentaje
+Si alguna persona no se encuentra simplemente actualiza las otras
+Nunca devuelve un error
 
 #### Borrar un libro
-No está hecho todavía
+`DELETE /libro{isbn}`
+
+Borra todas las relaciones con las personas
 
 ## Clientes
 

@@ -6,10 +6,11 @@ const table_name = "libros"
 
 export class Libro {
     constructor(libro) {
-        this.titulo = libro.titulo
-        this.isbn   = libro.isbn
-        this.fecha_edicion = libro.fecha_edicion
-        this.precio = libro.precio
+        this.titulo = libro.titulo;
+        this.isbn   = libro.isbn;
+        this.fecha_edicion = libro.fecha_edicion;
+        this.precio = libro.precio;
+        this.stock  = libro.stock || 0;
     }
 
     //Validate the request
@@ -62,6 +63,7 @@ export class Libro {
         this.titulo = req.titulo || this.titulo;
         this.precio = req.precio || this.precio;
         this.fecha_edicion = req.fecha_edicion || this.fecha_edicion;
+        this.stock = req.stock || this.stock;
 
         let res = (await conn.query(`
             UPDATE ${table_name}
@@ -78,32 +80,30 @@ export class Libro {
     }
 
     async add_personas(personas){
-        
-        if (personas.length > 0){
-            let persona_libro = personas.map(p => `('${this.isbn}', ${p.id}, ${p.tipo}, ${p.porcentaje || 0})`).join(', ');  //((isbn, id, tipo), (isbn, id, tipo) ...) String
-    
-            console.log("persona_lbro", persona_libro);
-    
-            //Validar si la persona ya trabaja en este libro
+        for (let i in personas) {
+            let persona = personas[i];
+
             let res = (await conn.query(`
                 SELECT id_persona, tipo 
                 FROM libros_personas 
-                WHERE (isbn, id_persona, tipo, porcentaje) in (${persona_libro})`
+                WHERE (isbn, id_persona, tipo) in ((${this.isbn}, ${persona.id}, ${persona.tipo}))`
             ))[0];
-    
-            for (let i in res) {
-                throw new Duplicated(`La persona ${res[i].id_persona} ya es un ${Persona.str_tipos[res[i].tipo]} del libro ${this.isbn}`);
-            }
 
-            await conn.query(`
-                INSERT INTO libros_personas 
-                (isbn, id_persona, tipo, porcentaje) VALUES ${persona_libro}`
-            )
+            console.log("res:", res.length);
+
+            if (res.length > 0)
+                console.log("duplicated");//throw new Duplicated(`La persona ${persona.id} ya es un ${Persona.str_tipos[persona.tipo]} del libro ${this.isbn}`);
+            else
+                await conn.query(`
+                    INSERT INTO libros_personas 
+                    SET id_persona=${persona.id},
+                    tipo=${persona.tipo},
+                    isbn=${this.isbn}
+                `);
         }
     }
 
     async update_personas(personas){
-
         for (let i in personas) {
             if (personas[i].porcentaje){
                 let res = (await conn.query(`
