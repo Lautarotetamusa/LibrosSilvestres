@@ -1,6 +1,7 @@
 import express from "express"
 
 import {LibroController} from "../controllers/libro.controller.js"
+import {VentaController} from "../controllers/venta.controller.js"
 
 const router = express.Router();
 
@@ -19,6 +20,9 @@ router.put('/:isbn', LibroController.update);
 router.post('/:isbn/personas', LibroController.manage_personas);
 router.put('/:isbn/personas', LibroController.manage_personas);
 router.delete('/:isbn/personas', LibroController.manage_personas);
+
+//Ventas de este libro
+router.get('/:isbn/ventas', VentaController.ventas_libro)
 
 router.delete('/:isbn', LibroController.delete);
 

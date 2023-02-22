@@ -18,7 +18,8 @@
   "scripts": {
     "dev": "nodemon src/app.js",
     "test_libro": "mocha tests/libro.test.js",
-    "test_persona": "mocha tests/persona.test.js"
+    "test_persona": "mocha tests/persona.test.js",
+    "test_cliente": "mocha tests/cliente.test.js"
   },
   "keywords": [],
   "author": "",

@@ -1,28 +1,7 @@
 import {conn} from '../db.js'
+import {ValidationError, NotFound, NothingChanged, Duplicated} from './errors.js';
 
 const table_name = "clientes"
-
-class ValidationError extends Error {
-    constructor(message){
-        super(message);
-        this.name = "ValidationError";
-        this.status_code = 400;
-    }
-}
-class NotFound extends Error {
-    constructor(message){
-        super(message);
-        this.name = "NotFound";
-        this.status_code = 404;
-    }
-}
-class NothingChanged extends Error {
-    constructor(message){
-        super(message);
-        this.name = "NothingChanged";
-        this.status_code = 200;
-    }
-}
 
 export class Cliente{
     static particular = 0;
@@ -69,7 +48,20 @@ export class Cliente{
             throw new ValidationError("La condicion fiscal no es correcta [1..14]");
     }
 
+    static async cuil_exists(cuit){
+        let res = (await conn.query(`
+            SELECT COUNT(id) as count FROM ${table_name}
+            WHERE cuit=${cuit}
+            AND tipo=${Cliente.inscripto}`
+        ))[0][0].count;
+        console.log(res > 0);
+        return res > 0;
+    }
+
     async insert() {
+        if (this.tipo == Cliente.inscripto && await Cliente.cuil_exists(this.cuit))
+            throw new Duplicated(`Ya existe un cliente con cuil ${this.cuit}`)
+
         let res = (await conn.query(`
             INSERT INTO ${table_name} SET ?`
         , this))[0];
@@ -80,22 +72,31 @@ export class Cliente{
     async update(data) {
         //Si cambiamos de tipo particular a inscripto
         if (data.tipo != this.tipo && data.tipo == Cliente.inscripto){
-            console.log(data.cond_fiscal);
             Cliente.validate_inscripto(data);
+            if (data.cuit && await Cliente.cuil_exists(data.cuit))
+                throw new Duplicated(`Ya existe un cliente con cuil ${data.cuit}`)
         } 
+        if (this.tipo == Cliente.inscripto){
+            if (data.cuit && await Cliente.cuil_exists(data.cuit))
+                throw new Duplicated(`Ya existe un cliente con cuil ${data.cuit}`)
+        }
+
+        this.tipo = data.tipo || this.tipo;
+        this.cuit = data.cuit || this.cuit;
+        this.cond_fiscal = data.cond_fiscal || this.cond_fiscal;
+        this.nombre = data.nombre || this.nombre;
+        this.email = data.email || this.email;
 
         let res = (await conn.query(`
             UPDATE ${table_name} SET ?
             WHERE id=${this.id}`
-        , data))[0];
+        , this))[0];
 
         if (res.affectedRows == 0)
             throw new NotFound(`No se encuentra el cliente con id ${this.id}`);
 
         if (res.changedRows == 0)
             throw new NothingChanged('Ningun valor es distinto a lo que ya existia en la base de datos');
-
-        return new Cliente(data);
     }
 
     static async delete(id){

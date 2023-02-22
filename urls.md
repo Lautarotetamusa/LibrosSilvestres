@@ -181,6 +181,9 @@ Borra todas las relaciones con las personas
 
 ## Clientes
 
+#### Obtener lista de las condiciones fiscales
+`GET /cliente/cond_fiscales`
+
 #### Obtener todos los clientes
 `GET /cliente`
 
@@ -193,7 +196,7 @@ Borra todas las relaciones con las personas
 Clientes del tipo 0 (particular)
 ```json
 {
-    "nombre": "jose",
+    "nombre": "jose", //No olbigatorio, se hace null si no existe
     "email": "jose@gmail.com",
 }
 ```
@@ -202,7 +205,7 @@ Clientes del tipo 1 (inscripto)
 ```json
 {
     "nombre": "Libreria 3",
-    "email": "libreria3@gmail.com",
+    "email": "libreria3@gmail.com", //No olbigatorio, se hace null si no existe
     "tipo": 1,
     "cuit": 434919798,
     "cond_fiscal": 1

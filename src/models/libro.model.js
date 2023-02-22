@@ -59,11 +59,14 @@ export class Libro {
     }
     
     async update(req){
-        
+        console.log("request:", req);
+
         this.titulo = req.titulo || this.titulo;
         this.precio = req.precio || this.precio;
         this.fecha_edicion = req.fecha_edicion || this.fecha_edicion;
-        this.stock = req.stock || this.stock;
+        if ('stock' in req)
+            this.stock = req.stock;
+        console.log("libro stock", this.stock);
 
         let res = (await conn.query(`
             UPDATE ${table_name}
@@ -71,6 +74,8 @@ export class Libro {
             WHERE isbn=${this.isbn}
             AND is_deleted = 0
         `, this))[0];
+
+        console.log(this);
 
         if (res.affectedRows == 0)
             throw new NotFound(`No se encuentra el libro con isbn ${this.isbn}`);

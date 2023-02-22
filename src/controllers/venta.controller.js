@@ -1,6 +1,7 @@
 import { Venta } from "../models/venta.model.js";
 import { Cliente } from "../models/cliente.model.js";
 import { Libro } from "../models/libro.model.js";
+import { parse_error } from "../models/errors.js"
 
 export const VentaController = {};
 
@@ -47,7 +48,7 @@ export const VentaController = {};
 VentaController.vender = async(req, res) => {
     let body = req.body;
     let cliente;
-    let libros;
+    let libros = [];
     
     try {
         if (typeof body.cliente == Object){
@@ -62,18 +63,27 @@ VentaController.vender = async(req, res) => {
         }
         
         for (let i in body.libros) {
-            let libro = await Libro.get_by_isbn(body.libros[i].isbn)
+            libros[i] = await Libro.get_by_isbn(body.libros[i].isbn);
 
-            if (libro.stock < body.libros[i].cantidad)
+            body.libros[i].precio = libros[i].precio;
+
+            if (libros[i].stock < body.libros[i].cantidad)
                 return res.status(400).json({
-                    message: `El libro ${libro.titulo} con isbn ${libro.isbn} no tiene suficiente stock`
+                    success: false,
+                    error: `El libro ${libros[i].titulo} con isbn ${libros[i].isbn} no tiene suficiente stock`
                 })
-
-            body.libros[i] = {
-                ...body.libros[i],
-                ...libro
-            };
         }
+        console.log("libros", libros);
+        //Actualizar el stock de todos los libros
+        for (let i in body.libros){
+            console.log("new stock",  {stock: libros[i].stock - body.libros[i].cantidad});
+            await libros[i].update({
+                stock: libros[i].stock - body.libros[i].cantidad
+            });
+        }
+
+        //body.libros = libros;
+        console.log("body libros", body.libros);
 
         const venta = new Venta(body);
 
@@ -82,16 +92,35 @@ VentaController.vender = async(req, res) => {
         res.status(201).json(venta)
 
     } catch (error) {
-        if (error instanceof Cliente.NotFound)
-            return res.status(error.status_code).json({message: error.message})
-        if (error instanceof Libro.LibroError)
-            return res.status(error.status_code).json({message: error.message})
-        if (error instanceof Cliente.ValidationError)
-            return res.status(error.status_code).json({message: error.message})
-        if (error instanceof Venta.ValidationError)
-            return res.status(error.status_code).json({message: error.message})
-        
-        console.log(error)
-        return res.status(500).json(error);
+        return parse_error(res, error);
+    }
+}
+
+VentaController.get_one = async(req, res) => {
+    try {
+        let venta = await Venta.get_by_id(req.params.id);
+        console.log(venta);
+        return res.json(venta);
+    } catch (error) {
+        return parse_error(res, error);
+    }
+}
+
+VentaController.get_all = async(req, res) => {
+    try {
+        let venta = await Venta.get_all(req.params.id);
+        console.log(venta);
+        return res.json(venta);
+    } catch (error) {
+        return parse_error(res, error);
+    }
+}
+
+VentaController.ventas_libro = async(req, res) => {
+    try {
+        let ventas = await Venta.get_by_isbn(req.params.isbn);
+        return res.json(ventas);
+    } catch (error) {
+        return parse_error(res, error);
     }
 }

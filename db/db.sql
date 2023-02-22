@@ -62,6 +62,7 @@ CREATE TABLE libros_ventas(
     isbn VARCHAR(13) NOT NULL,
     id_venta INT(11) NOT NULL,
     cantidad INT NOT NULL,
+    precio_venta FLOAT NOT NULL,
 
     FOREIGN KEY (isbn) REFERENCES libros(isbn),
     FOREIGN KEY (id_venta) REFERENCES ventas(id)
