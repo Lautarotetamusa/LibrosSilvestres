@@ -2,6 +2,7 @@ import { Venta } from "../models/venta.model.js";
 import { Cliente } from "../models/cliente.model.js";
 import { Libro } from "../models/libro.model.js";
 import { parse_error } from "../models/errors.js"
+import { create_factura } from "../facturacion/crearFacturas.js"
 
 export const VentaController = {};
 
@@ -49,6 +50,11 @@ VentaController.vender = async(req, res) => {
     let body = req.body;
     let cliente;
     let libros = [];
+    let datos_venta = {
+        "punto_venta": 4,
+        "tipo_cbte": 11
+    };
+    
     
     try {
         if (typeof body.cliente == Object){
@@ -66,6 +72,8 @@ VentaController.vender = async(req, res) => {
             libros[i] = await Libro.get_by_isbn(body.libros[i].isbn);
 
             body.libros[i].precio = libros[i].precio;
+            body.libros[i].bonif  = body.porcentaje || 0.0;
+            body.libros[i].titulo = libros[i].titulo;
 
             if (libros[i].stock < body.libros[i].cantidad)
                 return res.status(400).json({
@@ -73,7 +81,21 @@ VentaController.vender = async(req, res) => {
                     error: `El libro ${libros[i].titulo} con isbn ${libros[i].isbn} no tiene suficiente stock`
                 })
         }
-        console.log("libros", libros);
+
+        datos_venta.cliente = body.cliente.cuit;
+        //datos_venta.cliente = 27249804024;
+        datos_venta.tipo = Venta.str_medios_pago[body.medio_pago];
+
+        console.log(datos_venta);
+        console.log(libros);
+        console.log(body.libros);
+        let {error} = await create_factura(body.libros, datos_venta);
+        console.log("error: ", error);
+        if (error) return res.status(404).json({
+            success: true,
+            error: error
+        })
+
         //Actualizar el stock de todos los libros
         for (let i in body.libros){
             console.log("new stock",  {stock: libros[i].stock - body.libros[i].cantidad});
@@ -81,9 +103,6 @@ VentaController.vender = async(req, res) => {
                 stock: libros[i].stock - body.libros[i].cantidad
             });
         }
-
-        //body.libros = libros;
-        console.log("body libros", body.libros);
 
         const venta = new Venta(body);
 

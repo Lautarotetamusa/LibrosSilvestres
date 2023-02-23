@@ -34,6 +34,14 @@ export class Venta{
         transferencia: 4,
     }
 
+    static str_medios_pago = [
+        "efectivo",
+        "debito",
+        "credito",
+        "mercadopago",
+        "transferencia"
+    ]
+
     async insert(){
         this.total = this.libros.reduce((acumulador, libro) => 
             acumulador + libro.cantidad * libro.precio
@@ -85,7 +93,7 @@ export class Venta{
         `))[0];
 
         let clientes = (await conn.query(`
-            SELECT nombre, email, tipo, cuit, cond_fiscal FROM clientes
+            SELECT cuit, nombre, email, tipo, cond_fiscal FROM clientes
             INNER JOIN ventas
                 ON ventas.id_cliente = clientes.id
             WHERE ventas.id = ${id}
@@ -101,7 +109,10 @@ export class Venta{
 
     static async get_all(){
         return (await conn.query(`
-            SELECT libros.isbn, titulo, cantidad, precio_venta, ventas.*, clientes.*
+            SELECT 
+                libros.isbn, titulo, cantidad, precio_venta, 
+                fecha, medio_pago, total, 
+                cuit, nombre as nombre_cliente, email, cond_fiscal, tipo
             FROM libros
             INNER JOIN libros_ventas
                 ON libros_ventas.isbn = libros.isbn
@@ -114,7 +125,10 @@ export class Venta{
 
     static async get_by_isbn(isbn){
         let ventas = (await conn.query(`
-            SELECT libros.isbn, titulo, cantidad, precio_venta, ventas.*, clientes.*
+            SELECT 
+                libros.isbn, titulo, cantidad, precio_venta, 
+                fecha, medio_pago, total, 
+                cuit, nombre as nombre_cliente, email, cond_fiscal, tipo
             FROM libros
             INNER JOIN libros_ventas
                 ON libros_ventas.isbn = libros.isbn

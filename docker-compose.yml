@@ -25,6 +25,7 @@ services:
       - DB_HOST=mysqldb
     volumes:
      - ./src:/app/src
+     - ./facturas:/app/facturas
     #stdin_open: true
     #tty: true
 

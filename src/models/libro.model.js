@@ -3,6 +3,7 @@ import {Persona} from "./persona.model.js"
 import {ValidationError, NotFound, Duplicated, NothingChanged} from './errors.js'
 
 const table_name = "libros"
+const visible_fields = "titulo, isbn, fecha_edicion, precio, stock"
 
 export class Libro {
     constructor(libro) {
@@ -168,7 +169,7 @@ export class Libro {
 
     async get_personas() {
         let personas = (await conn.query(`
-            SELECT id, nombre, email, libros_personas.tipo, libros_personas.porcentaje
+            SELECT dni, nombre, email, libros_personas.tipo, libros_personas.porcentaje
             FROM personas 
             INNER JOIN libros_personas
             INNER JOIN ${table_name}
@@ -188,7 +189,7 @@ export class Libro {
         let libros_per_page = 10;
 
         let libros = (await conn.query(`
-            SELECT *
+            SELECT ${visible_fields}
             FROM ${table_name}
             WHERE is_deleted = 0
             LIMIT ${libros_per_page}
@@ -196,11 +197,8 @@ export class Libro {
         `))[0];
 
         for (let i in libros) {
-            let libro = new Libro(libros[i])
+            let libro = new Libro(libros[i]);
             await libro.get_personas();
-
-            //libros[i].autores      = autores;
-            //libros[i].ilustradores = ilustradores;
         }
 
         return libros;

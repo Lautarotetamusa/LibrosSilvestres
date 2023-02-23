@@ -1,4 +1,5 @@
 CREATE DATABASE IF NOT EXISTS librossilvestres;
+USE librossilvestres;
 
 CREATE TABLE libros(
     isbn VARCHAR(13) NOT NULL,
