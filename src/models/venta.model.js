@@ -24,6 +24,7 @@ export class Venta{
         this.cliente    = request.cliente;
         this.libros     = request.libros;
         this.medio_pago = request.medio_pago;
+        this.path       = request.path;
     }
 
     static medios_pago = {
@@ -50,9 +51,9 @@ export class Venta{
 
         let venta = (await conn.query(`
             INSERT INTO ${table_name}
-                (id_cliente, descuento, medio_pago, total) 
+                (id_cliente, descuento, medio_pago, total, file_path) 
             VALUES 
-                (${this.cliente.id}, ${this.descuento}, ${this.medio_pago}, ${this.total})
+                (${this.cliente.id}, ${this.descuento}, ${this.medio_pago}, ${this.total}, '${this.path}')
         `))[0];
 
         let libros_venta = this.libros.map(l => [venta.insertId, l.cantidad, l.isbn, l.precio]);
@@ -110,14 +111,9 @@ export class Venta{
     static async get_all(){
         return (await conn.query(`
             SELECT 
-                libros.isbn, titulo, cantidad, precio_venta, 
-                fecha, medio_pago, total, 
+                fecha, medio_pago, total, file_path,
                 cuit, nombre as nombre_cliente, email, cond_fiscal, tipo
-            FROM libros
-            INNER JOIN libros_ventas
-                ON libros_ventas.isbn = libros.isbn
-            INNER JOIN ventas
-                ON ventas.id = libros_ventas.id_venta
+            FROM ventas
             INNER JOIN clientes
                 ON ventas.id_cliente = clientes.id
         `))[0];
@@ -127,7 +123,7 @@ export class Venta{
         let ventas = (await conn.query(`
             SELECT 
                 libros.isbn, titulo, cantidad, precio_venta, 
-                fecha, medio_pago, total, 
+                fecha, medio_pago, total, file_path
                 cuit, nombre as nombre_cliente, email, cond_fiscal, tipo
             FROM libros
             INNER JOIN libros_ventas

@@ -39,7 +39,7 @@ CREATE TABLE clientes(
     nombre VARCHAR(60) NOT NULL, 
     email VARCHAR(60) DEFAULT "",
 
-    cuit INT(11) DEFAULT NULL,
+    cuit VARCHAR(15) DEFAULT NULL,
     cond_fiscal TINYINT DEFAULT NULL,
 
     tipo TINYINT DEFAULT 0,
@@ -55,6 +55,9 @@ CREATE TABLE ventas(
     id_cliente INT(11) NOT NULL,
     total FLOAT NOT NULL,
 
+    /*file path tipico 2023_02_23_165323_27249804024.pdf --> 33 caracteres*/ 
+    file_path VARCHAR(40) NOT NULL,
+
     PRIMARY KEY (id),
     FOREIGN KEY (id_cliente) REFERENCES clientes(id)
 );
@@ -69,3 +72,4 @@ CREATE TABLE libros_ventas(
     FOREIGN KEY (id_venta) REFERENCES ventas(id)
 );
     
+

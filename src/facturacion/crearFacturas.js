@@ -66,6 +66,7 @@ export async function create_factura(libros, venta){
 		
 	if (cliente === null){
 		console.log('La persona con CUIT', venta.cliente, ' no existe');
+		throw new Error(`La persona con CUIT ${venta.cliente} no existe`);
 		return {error: `La persona con CUIT ${venta.cliente} no existe`, success:false};
 	}
 
