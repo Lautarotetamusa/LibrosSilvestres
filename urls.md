@@ -239,6 +239,10 @@ Actualizar cliente del tipo 0
 
 ## Ventas
 
+#### Obtener los medios de pago
+`GET /venta/medios_pago`
+Devuelve una lista con los medios de pago disponibles
+
 #### Nueva venta
 `POST /venta`
 
