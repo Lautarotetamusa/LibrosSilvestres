@@ -1,5 +1,8 @@
 # [Api references](./urls.md)
 
+# Estructura de las tablas
+![Alt text](./Tablas.png)
+
 # Instalacion con docker
 Instalar docker
 `sudo apt install docker`

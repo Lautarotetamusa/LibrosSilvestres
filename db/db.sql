@@ -47,6 +47,27 @@ CREATE TABLE clientes(
     PRIMARY KEY(id)
 );
 
+CREATE TABLE consignaciones(
+    id INT(11) NOT NULL AUTO_INCREMENT,
+    id_cliente INT(11) NOT NULL,
+    fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    remito_path VARCHAR(80) NOT NULL,
+
+    PRIMARY KEY(id),
+    FOREIGN KEY(id_cliente) REFERENCES clientes(id)
+);
+
+CREATE TABLE libros_consignaciones(
+    isbn VARCHAR(13) NOT NULL,
+    id_consignacion INT(11) NOT NULL,
+    cantidad INT NOT NULL,
+
+    PRIMARY KEY (isbn, id_consignacion),
+    FOREIGN KEY (isbn) REFERENCES libros(isbn),
+    FOREIGN KEY (id_consignacion) REFERENCES consignaciones(id)
+);
+
 CREATE TABLE ventas(
     id INT(11) NOT NULL AUTO_INCREMENT,
     fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -56,7 +77,7 @@ CREATE TABLE ventas(
     total FLOAT NOT NULL,
 
     /*file path tipico 2023_02_23_165323_27249804024.pdf --> 33 caracteres*/ 
-    file_path VARCHAR(40) NOT NULL,
+    file_path VARCHAR(80) NOT NULL,
 
     PRIMARY KEY (id),
     FOREIGN KEY (id_cliente) REFERENCES clientes(id)
