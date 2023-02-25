@@ -54,7 +54,6 @@ export class Cliente{
             WHERE cuit=${cuit}
             AND tipo=${Cliente.inscripto}`
         ))[0][0].count;
-        console.log(res > 0);
         return res > 0;
     }
 
@@ -107,6 +106,20 @@ export class Cliente{
 
         if (res.affectedRows == 0)
             throw new NotFound(`No se encuentra el cliente con id ${id}`);
+    }
+
+    async get_stock(){
+        let res = (await conn.query(`
+
+            SELECT 
+                titulo, libros.isbn, sc.stock
+            FROM stock_cliente as sc
+            INNER JOIN libros
+                ON libros.isbn = sc.isbn
+            WHERE id_cliente=${this.id}
+
+        `))[0];
+        return res;
     }
 
     static async get_all() {

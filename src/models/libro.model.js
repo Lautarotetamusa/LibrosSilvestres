@@ -55,7 +55,6 @@ export class Libro {
 
     async insert(personas) {
         await conn.query("INSERT INTO libros SET ?", this);
-
         await this.add_personas(personas);
     }
     
@@ -83,6 +82,10 @@ export class Libro {
 
         if (res.changedRows == 0)
             throw new NothingChanged('Ningun valor es distinto a lo que ya existia en la base de datos');
+    }
+
+    async update_stock(stock){
+        this.update({stock: this.stock+stock});
     }
 
     async add_personas(personas){

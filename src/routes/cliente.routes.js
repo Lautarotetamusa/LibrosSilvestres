@@ -9,6 +9,8 @@ router.post('/', ClienteController.create);
 
 router.get('/', ClienteController.get_all);
 
+router.get('/:id/stock', ClienteController.get_stock);
+
 router.get('/:id', async (req, res) => {
     if (req.params.id == "cond_fiscales"){
         return res.json(Cliente.cond_fiscales);

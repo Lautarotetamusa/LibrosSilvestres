@@ -6,6 +6,7 @@
 * [Libros](#Libros)
 * [Clientes](#Clientes)
 * [Ventas](#Ventas)
+* [Consignaciones](#Consignaciones)
 
 ## Personas
 
@@ -235,13 +236,32 @@ Actualizar cliente del tipo 0
 ```
 
 #### Borrar un cliente
-`DELETE cliente/12`
+`DELETE cliente/{id}`
+
+#### Obtener el stock de un cliente
+`GET cliente/{id}/stock`
 
 ## Ventas
 
 #### Obtener los medios de pago
 `GET /venta/medios_pago`
 Devuelve una lista con los medios de pago disponibles
+
+respuesta:
+```json
+[
+  {
+    "titulo": "Dama de corazones",
+    "isbn": "97898712345",
+    "stock": 8
+  },
+  {
+    "titulo": "Breviario",
+    "isbn": "98765432100",
+    "stock": 3
+  }
+]
+```
 
 #### Nueva venta
 `POST /venta`
@@ -264,3 +284,32 @@ Devuelve una lista con los medios de pago disponibles
     ]
 }
 ```
+Si el id del cliente no existe devuelve un error 404 NotFound  
+Si algun isbn no existe devuelve un error 404 NotFound  
+Si el stock de algun libro no es suficiente devuelve un error 400  
+
+## Consignaciones
+
+#### Nueva consignacion
+`POST /consignacion`
+
+```json
+{
+  "cliente": 78,
+  "libros": [
+    {
+      "isbn": "98765432100",
+      "cantidad": 3
+    }
+  ]
+}
+```
+
+Si el id del cliente no existe devuelve un error 404 NotFound  
+Si algun isbn no existe devuelve un error 404 NotFound  
+Si el stock de algun libro no es suficiente devuelve un error 400  
+
+Si tiene exito la consulta devuelve 200 y:
+  - Agrega una fila a consignacion
+  - Agrega una fila a libro_consignacion por cada libro
+  - Si ese cliente no tenía stock para un libro lo crea, sino lo actualiza con el nuevo valor

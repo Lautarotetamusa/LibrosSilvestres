@@ -61,11 +61,22 @@ CREATE TABLE consignaciones(
 CREATE TABLE libros_consignaciones(
     isbn VARCHAR(13) NOT NULL,
     id_consignacion INT(11) NOT NULL,
-    cantidad INT NOT NULL,
+    stock INT NOT NULL,
 
     PRIMARY KEY (isbn, id_consignacion),
     FOREIGN KEY (isbn) REFERENCES libros(isbn),
     FOREIGN KEY (id_consignacion) REFERENCES consignaciones(id)
+);
+
+CREATE TABLE stock_cliente(
+    id_cliente INT(11) NOT NULL,
+    isbn VARCHAR(13) NOT NULL,
+
+    stock INT NOT NULL,
+
+    PRIMARY KEY (isbn, id_cliente),
+    FOREIGN KEY (isbn) REFERENCES libros(isbn),
+    FOREIGN KEY (id_cliente) REFERENCES clientes(id)
 );
 
 CREATE TABLE ventas(

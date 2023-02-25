@@ -59,6 +59,17 @@ ClienteController.update = async (req, res) => {
     }
 }
 
+ClienteController.get_stock = async(req, res) => {
+    try {
+        const cliente = await Cliente.get_by_id(req.params.id);
+        
+        let stock = await cliente.get_stock();
+        return res.json(stock)
+    } catch (error) {
+        return parse_error(res, error);
+    }
+}
+
 ClienteController.delet = async (req, res) => {
     try {
         await Cliente.delete(req.params.id)
