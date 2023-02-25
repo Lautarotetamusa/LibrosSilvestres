@@ -291,7 +291,7 @@ Si el stock de algun libro no es suficiente devuelve un error 400
 ## Consignaciones
 
 #### Nueva consignacion
-`POST /consignacion`
+`POST consignacion/`
 
 ```json
 {
@@ -310,6 +310,6 @@ Si algun isbn no existe devuelve un error 404 NotFound
 Si el stock de algun libro no es suficiente devuelve un error 400  
 
 Si tiene exito la consulta devuelve 200 y:
-  - Agrega una fila a consignacion
-  - Agrega una fila a libro_consignacion por cada libro
-  - Si ese cliente no tenía stock para un libro lo crea, sino lo actualiza con el nuevo valor
+  - Inserta una fila a consignacion.
+  - Inserta una fila a `libro_consignacion` por cada libro.
+  - Si existe una fila en `stock_cliente` para ese cliente y ese isbn la actualiza con el nuevo stock, sino inserta una nueva fila en `stock_cliente`.
