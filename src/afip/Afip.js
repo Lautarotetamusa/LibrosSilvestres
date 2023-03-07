@@ -2,15 +2,15 @@ import Afip from '@afipsdk/afip.js';
 
 import QRcode from 'qrcode';
 
-import { html2pdf } from './GenerarPDF/makepdf.js'
+import { emitir_comprobante } from '../comprobantes/comprobante.js'
 
 const date = new Date(Date.now() - ((new Date()).getTimezoneOffset() * 60000)).toISOString().split('T')[0];
 
 // cuenta madre
 const afip_madre = new Afip({
 	CUIT: 27249804024,
-	ta_folder: './src/facturacion/ClavesLibrosSilvestres/Tokens/',
-	res_folder: './src/facturacion/ClavesLibrosSilvestres/',
+	ta_folder: './src/afip/ClavesLibrosSilvestres/Tokens/',
+	res_folder: './src/afip/ClavesLibrosSilvestres/',
 	key: 'private_key.key',
 	cert: 'FacturadorLibrosSilvestres_773cb8c416f11552.crt',
 	production: true,
@@ -18,8 +18,8 @@ const afip_madre = new Afip({
 
 const afip = new Afip({
 	CUIT: 20434919798,
-	ta_folder: './src/facturacion/Claves/Tokens/',
-	res_folder: './src/facturacion/Claves',
+	ta_folder: './src/afip/Claves/Tokens/',
+	res_folder: './src/afip/Claves',
 	key: 'private_key.key',
 	cert: 'cert.pem',
 	production: false,
@@ -57,7 +57,7 @@ function calc_subtotal(libro){
 
 export default afip_madre;
 
-export async function create_factura(venta){
+export async function facturar(venta){
 
 	let total = venta.libros.reduce((sum, libro) => sum + calc_subtotal(libro), 0);
 	let data = {
@@ -92,9 +92,10 @@ export async function create_factura(venta){
 	//console.log(comprobante);
 	
 	QRcode.toDataURL(qr_url(comprobante), function (err, base64_qr) {
-		html2pdf(base64_qr, {
+		emitir_comprobante({
 			...venta,
+			qr_data: base64_qr,
 			comprobante: comprobante
-		});
+		}, "factura");
 	});
 }

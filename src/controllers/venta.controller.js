@@ -1,6 +1,6 @@
 import { Venta } from "../models/venta.model.js";
 import { parse_error } from "../models/errors.js"
-import { create_factura } from "../facturacion/Afip.js"
+import { facturar } from "../afip/Afip.js";
 
 export const VentaController = {};
 
@@ -18,13 +18,13 @@ VentaController.vender = async(req, res) => {
 
         console.log("venta:", venta);
         
-        for (let i in venta.libros){
-            await venta.libros[i].update_stock(-body.libros[i].cantidad);
-        }
+        //for (let i in venta.libros){
+        //    await venta.libros[i].update_stock(-body.libros[i].cantidad);
+        //}
         
-        await venta.insert();
+        //await venta.insert();
 
-        await create_factura(venta);
+        await facturar(venta);
 
         res.status(201).json(venta);
 

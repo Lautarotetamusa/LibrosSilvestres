@@ -1,9 +1,10 @@
 import { Consignacion } from "../models/consignacion.model.js";
 import { Cliente } from "../models/cliente.model.js";
 import { Libro } from "../models/libro.model.js";
-import { parse_error } from "../models/errors.js"
 import { Venta } from "../models/venta.model.js";
-import { generate_remito } from "../emitir_remito/remito.js"
+import { parse_error } from "../models/errors.js"
+
+import { emitir_comprobante } from "../comprobantes/comprobante.js"
 export const ConsignacionController = {};
 
 ConsignacionController.consignar = async(req, res) => {
@@ -22,7 +23,7 @@ ConsignacionController.consignar = async(req, res) => {
 
         console.log("consignacion:", consignacion);
 
-        await generate_remito(consignacion);
+        await emitir_comprobante(consignacion, "remito");
 
         res.status(201).json(consignacion);
 

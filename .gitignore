@@ -5,5 +5,5 @@ package-lock.json
 /facturas/*
 /remitos/*
 
-src/facturacion/Claves/*
-src/facturacion/ClavesLibrosSilvestres/*
+src/afip/Claves/*
+src/afip/ClavesLibrosSilvestres/*
