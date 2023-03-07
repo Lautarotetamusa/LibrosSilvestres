@@ -77,19 +77,22 @@ export class Venta{
         for (let i in req) {
             this.libros[i] = await Libro.get_by_isbn(req[i].isbn);
             this.libros[i].cantidad = req[i].cantidad;
-            this.libros[i].bonif    = req[i].porcentaje || 0;
 
             if (this.libros[i].stock < req[i].cantidad)
                 throw new ValidationError(`El libro ${libros[i].titulo} con isbn ${libros[i].isbn} no tiene suficiente stock`)
         }
-    }
 
-    async insert(){
         this.total = this.libros.reduce((acumulador, libro) => 
             acumulador + libro.cantidad * libro.precio
         , 0);
-        console.log("total:", this.total);
 
+        this.total -= (this.total * this.descuento * 0.01);
+        this.total = parseFloat(this.total.toFixed(2));
+
+        console.log("total:", this.total);
+    }
+
+    async insert(){
         let venta = (await conn.query(`
             INSERT INTO ${table_name}
                 (id_cliente, descuento, medio_pago, total, file_path) 

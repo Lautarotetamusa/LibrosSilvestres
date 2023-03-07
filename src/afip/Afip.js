@@ -59,7 +59,7 @@ export default afip_madre;
 
 export async function facturar(venta){
 
-	let total = venta.libros.reduce((sum, libro) => sum + calc_subtotal(libro), 0);
+	//let total = venta.libros.reduce((sum, libro) => sum + calc_subtotal(libro), 0);
 	let data = {
 		'CantReg' 	: 1,  									//Cantidad de comprobantes a registrar
 		'PtoVta' 	: venta.punto_venta,  					//Punto de venta
@@ -68,9 +68,9 @@ export async function facturar(venta){
 		'DocTipo' 	: venta.cliente.cuit == "0" ? 99 : 80, 	//Tipo de documento del comprador (99 consumidor final, 80 cuit)
 		'DocNro' 	: venta.cliente.cuit,  					//Número de documento del comprador (0 consumidor final)
 		'CbteFch' 	: parseInt(date.replace(/-/g, '')), 	//(Opcional) Fecha del comprobante (yyyymmdd) o fecha actual si es nulo
-		'ImpTotal' 	: total, 								//Importe total del comprobante
+		'ImpTotal' 	: venta.total, 								//Importe total del comprobante
 		'ImpTotConc': 0,   									//Importe neto no gravado2
-		'ImpNeto' 	: total, 								//Importe neto gravado
+		'ImpNeto' 	: venta.total, 								//Importe neto gravado
 		'ImpOpEx' 	: 0,   									//Importe exento de IVA
 		'ImpIVA' 	: 0,  									//Importe total de IVA
 		'ImpTrib' 	: 0,   									//Importe total de tributos

@@ -48,9 +48,9 @@ function factura(html, venta){
     var table = '';
 
     for (let libro of venta.libros) {
-        let bonif = libro.bonif * 0.01;
-        let imp_bonif = libro.precio * libro.cantidad * bonif;
-        let subtotal  = libro.precio * libro.cantidad * (1 - bonif);
+        let bonif = venta.descuento * 0.01;
+        let imp_bonif = (libro.precio * libro.cantidad * bonif).toFixed(2);
+        let subtotal  = (libro.precio * libro.cantidad * (1 - bonif)).toFixed(2);
 
         table += 
             `<tr>
@@ -58,13 +58,15 @@ function factura(html, venta){
             <td style="text-align:left">${libro.titulo}</td>
             <td>${libro.cantidad}</td>
             <td>${libro.precio}</td>
-            <td>${libro.bonif}</td>
+            <td>${venta.descuento}</td>
             <td>${imp_bonif}</td>
             <td>${subtotal}</td>
             </tr>`;
     }
     html = html.replace('{{LIBROS}}', table); 
     /**/
+
+    html = html.replace('{{cond_venta}}', venta.tipo);
 
     //QR
     html = html.replace('<img class="qr" src="">', `<img class="qr" src="${venta.qr_data}">`)

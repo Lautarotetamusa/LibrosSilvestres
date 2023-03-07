@@ -18,11 +18,11 @@ VentaController.vender = async(req, res) => {
 
         console.log("venta:", venta);
         
-        //for (let i in venta.libros){
-        //    await venta.libros[i].update_stock(-body.libros[i].cantidad);
-        //}
+        for (let i in venta.libros){
+            await venta.libros[i].update_stock(-body.libros[i].cantidad);
+        }
         
-        //await venta.insert();
+        await venta.insert();
 
         await facturar(venta);
 

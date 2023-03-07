@@ -17,9 +17,9 @@ ConsignacionController.consignar = async(req, res) => {
         
         await consignacion.set_libros(body.libros);
 
-        //await consignacion.cliente.update_stock(body.libros);
+        await consignacion.cliente.update_stock(body.libros);
 
-        //await consignacion.insert();
+        await consignacion.insert();
 
         console.log("consignacion:", consignacion);
 
