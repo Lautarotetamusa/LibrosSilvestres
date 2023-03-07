@@ -3,6 +3,7 @@ package-lock.json
 .env
 
 /facturas/*
+/remitos/*
 
 src/facturacion/Claves/*
 src/facturacion/ClavesLibrosSilvestres/*

@@ -21,7 +21,7 @@ export const ClienteController = {};
 */
 ClienteController.create = async (req, res) => {
      try {
-        Cliente.validate(req.body);
+        await Cliente.validate(req.body);
 
         const cliente = new Cliente(req.body);
 

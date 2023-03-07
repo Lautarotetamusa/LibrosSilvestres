@@ -3,7 +3,7 @@ import fs from 'fs';
 
 //const puppeteer = require('puppeteer');
 import puppeteer from 'puppeteer'
-
+import { Venta } from '../../models/venta.model.js';
 
 /*
     IMPORTANTE!!!
@@ -37,35 +37,15 @@ function parse_libros(html, libros){
 }
 
 function parse_cliente(html, cliente){
+  html = html.replace('{{cliente_cond}}', cliente.cond_fiscal);
 
-  if (!cliente.datosGenerales.domicilioFiscal.localidad)
-    cliente.datosGenerales.domicilioFiscal.localidad = 'CAPITAL FEDERAL'
+  html = html.replace('{{cliente_cuit}}', cliente.cuit);
 
-
-  let impuestos = null;
-  if (cliente.datosRegimenGeneral)
-     impuestos = cliente.datosRegimenGeneral.impuesto
-  else if(cliente.datosMonotributo)
-    impuestos = cliente.datosMonotributo.impuesto
-
-  var iva = impuestos.find(i => i.idImpuesto == 32);
-  if (iva)
-    html = html.replace('{{cliente_cond}}', iva.descripcionImpuesto);
-
-  
-  html = html.replace('{{cliente_cuit}}', cliente.datosGenerales.idPersona);
   html = html.replace('{{cliente_tipo_venta}}', cliente.tipo_venta);
 
-  if (cliente.datosGenerales.tipoPersona == 'JURIDICA')
-    html = html.replace('{{cliente_nombre}}', cliente.datosGenerales.razonSocial);
-  else 
-    html = html.replace('{{cliente_nombre}}', cliente.datosGenerales.nombre+' '+cliente.datosGenerales.apellido);
+  html = html.replace('{{cliente_nombre}}', cliente.razon_social);
 
-  html = html.replace('{{cliente_domicilio}}', `
-    ${cliente.datosGenerales.domicilioFiscal.direccion} - 
-    ${cliente.datosGenerales.domicilioFiscal.localidad}, 
-    ${cliente.datosGenerales.domicilioFiscal.descripcionProvincia}
-  `);
+  html = html.replace('{{cliente_domicilio}}', cliente.domicilio);
 
   return html;
 }
@@ -78,13 +58,11 @@ function parse_comprobante(html, comprobante){
   html = html.replace('{{fecha_vto}}', comprobante.FchVto);
   html = html.replace('{{fecha_emision}}', comprobante.CbteFch);
   html = html.replace('{{nro_comprobante}}', String(comprobante.nro).padStart(8, '0'));
-  html = html.replace('{{cond_venta}}', comprobante.tipoVenta);
-  html = html.replaceAll('{{TOTAL}}', comprobante.total);
-  
+
   return html;
 }
 
-export async function html2pdf(qr_data, data){
+export async function html2pdf(qr_data, venta){
 
   // Create a browser instance
   //const browser = await puppeteer.launch();
@@ -97,36 +75,29 @@ export async function html2pdf(qr_data, data){
   // Create a new page
   const page = await browser.newPage();
 
-  //Load the QR data
+  //Load the QR venta
   var html = fs.readFileSync('./src/facturacion/GenerarPDF/Factura.html', 'utf8');
   var css  = fs.readFileSync('./src/facturacion/GenerarPDF/viewer.css', 'utf8');
   var logo = fs.readFileSync('./src/facturacion/GenerarPDF/Logo.png', 'base64');
+  console.log("logo:", logo);
 
- 
+
   html = html.replace('<style></style>', `<style>${css}</style>`)
   html = html.replace('<img class="qr" src="">', `<img class="qr" src="${qr_data}">`)
-  html = html.replace('<img class="logo">', `<img class="logo" src="data:image/jpeg;base64,${logo}">`)
+  html = html.replace('<img class="logo">', `<img class="logo" src="venta:image/jpeg;base64,${logo}">`)
+  
+  html = parse_libros(html, venta.libros);
+  html = parse_cliente(html, venta.cliente);
+  html = parse_comprobante(html, venta.comprobante)
 
-  html = parse_libros(html, data.libros);
-
-  html = parse_cliente(html, data.cliente);
-
-  html = parse_comprobante(html, data.comprobante)
-
+  html = html.replace('{{cond_venta}}', venta.tipo);
+  html = html.replaceAll('{{TOTAL}}', venta.total);
 
   await page.setContent(html);
 
-// Downlaod the PDF
-  let date = new Date().toISOString()
-    .replace(/\..+/, '')     // delete the . and everything after;
-    .replace(/T/, '_')      // replace T with a space
-    .replaceAll('-', '_')
-    .replaceAll(':', '');
-
-  //console.log("data:", data);
-
+  console.log('facturas/'+venta.path);
   const pdf = await page.pdf({
-    path: 'facturas/'+date+'_'+data.comprobante['DocNro']+'.pdf',
+    path: 'facturas/'+venta.path,
     printBackground: true,
     format: 'A4',
   });
@@ -134,5 +105,5 @@ export async function html2pdf(qr_data, data){
   // Close the browser instance
   await browser.close();
 
-  console.log("PDF generado correctamente");
+  console.log("FACTURA generado correctamente");
 };

@@ -26,6 +26,7 @@ services:
     volumes:
      - ./src:/app/src
      - ./facturas:/app/facturas
+     - ./remitos:/app/remitos
     #stdin_open: true
     #tty: true
 

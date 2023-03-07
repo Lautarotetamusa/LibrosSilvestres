@@ -85,7 +85,12 @@ export class Libro {
     }
 
     async update_stock(stock){
-        this.update({stock: this.stock+stock});
+        await conn.query(`
+            UPDATE ${table_name}
+            SET stock  = ${this.stock}+${stock}
+            WHERE isbn = ${this.isbn}
+            AND is_deleted = 0
+        `);
     }
 
     async add_personas(personas){

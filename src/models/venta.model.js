@@ -1,5 +1,6 @@
 import {conn} from '../db.js'
 import { Libro } from './libro.model.js';
+import { Cliente } from "./cliente.model.js";
 
 import { NotFound, ValidationError } from './errors.js';
 
@@ -7,24 +8,15 @@ const table_name = 'ventas'
 
 export class Venta{
     constructor(request){
+        this.descuento  = request.descuento || 0;
+        this.medio_pago = request.medio_pago;
+        this.tipo = Venta.str_medios_pago[request.medio_pago];
+    
+        this.punto_venta = 4;
+        this.tipo_cbte   = 11;
 
-        if (!('medio_pago' in request))
-            throw new ValidationError('El medio de pago es obligatorio para la Venta')
-
-        if(!request.libros)
-            throw new ValidationError('La Venta necesita al menos un libro')
-
-        if(!request.cliente)
-            throw new ValidationError('La Venta necesita un cliente')
-
-        if(!(Object.keys(Venta.medios_pago)[request.medio_pago]))
-            throw new ValidationError('El medio de pago es incorrecto [0..4]')
-
-        this.descuento  = request.descuento;
         this.cliente    = request.cliente;
         this.libros     = request.libros;
-        this.medio_pago = request.medio_pago;
-        this.path       = request.path;
     }
 
     static medios_pago = {
@@ -43,6 +35,55 @@ export class Venta{
         "transferencia"
     ]
 
+    static validate(request){
+        if (!('medio_pago' in request))
+            throw new ValidationError('El medio de pago es obligatorio para la Venta');
+
+        if(!request.libros)
+            throw new ValidationError('La Venta necesita al menos un libro');
+
+        if(!request.cliente)
+            throw new ValidationError('La Venta necesita un cliente');
+
+        if(!(Object.keys(Venta.medios_pago)[request.medio_pago]))
+            throw new ValidationError('El medio de pago es incorrecto [0..4]')
+    }
+
+    async set_client(req){
+        if (typeof req == Object){
+            Cliente.validate(req);
+            this.cliente = new Cliente(req);
+            await body.cliente.insert();
+        }
+        else{
+            this.cliente = await Cliente.get_by_id(req);
+        }
+        if (this.cliente.tipo == Cliente.inscripto)
+            await this.cliente.get_afip_data();
+        else
+            this.cliente.consumidor_final();
+
+        let date = new Date().toISOString()
+            .replace(/\..+/, '')     // delete the . and everything after;
+            .replace(/T/, '_')       // replace T with a space
+            .replaceAll('-', '_')
+            .replaceAll(':', '');
+
+        this.path = this.cliente.razon_social.replaceAll(' ', '')+'_'+date+'.pdf'; 
+    }
+
+    async set_libros(req){
+        this.libros = [];
+        for (let i in req) {
+            this.libros[i] = await Libro.get_by_isbn(req[i].isbn);
+            this.libros[i].cantidad = req[i].cantidad;
+            this.libros[i].bonif    = req[i].porcentaje || 0;
+
+            if (this.libros[i].stock < req[i].cantidad)
+                throw new ValidationError(`El libro ${libros[i].titulo} con isbn ${libros[i].isbn} no tiene suficiente stock`)
+        }
+    }
+
     async insert(){
         this.total = this.libros.reduce((acumulador, libro) => 
             acumulador + libro.cantidad * libro.precio
@@ -53,17 +94,11 @@ export class Venta{
             INSERT INTO ${table_name}
                 (id_cliente, descuento, medio_pago, total, file_path) 
             VALUES 
-                (${this.cliente.id}, ${this.descuento}, ${this.medio_pago}, ${this.total}, '${this.path}')
+                (${this.cliente.id}, ${this.descuento}, '${this.medio_pago}', ${this.total}, '${this.path}')
         `))[0];
 
         let libros_venta = this.libros.map(l => [venta.insertId, l.cantidad, l.isbn, l.precio]);
         console.log(libros_venta);
-
-        /*for (let i in this.libros) {
-            //let libro = await Libro.get_by_isbn(this.libros[i].isbn);
-            //console.log("new stock", this.libros[i].stock - this.libros[i].cantidad);
-            
-        }*/
 
         await conn.query(`
             INSERT INTO libros_ventas

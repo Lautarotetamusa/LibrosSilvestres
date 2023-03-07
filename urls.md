@@ -107,11 +107,11 @@ Devuelve la data del libro y las personas relacionadas con este
   "stock": 10
 }
 ```
-Los campos que se pueden actualizar son
-stock
-precio
-titulo
-fecha_edicion
+Los campos que se pueden actualizar son  
+  - stock
+  - precio
+  - titulo
+  - fecha_edicion
 
 #### Agregar personas a un libro
 `POST /libro/{isbn}/personas`
@@ -188,8 +188,11 @@ Borra todas las relaciones con las personas
 #### Obtener todos los clientes
 `GET /cliente`
 
-#### Obtener cliente por id
+#### Obtener cliente
 `GET /cliente/{id}`
+
+#### Obtener el stock de un cliente
+`GET cliente/{id}/stock`
 
 #### Crear cliente
 `POST /cliente`
@@ -238,14 +241,10 @@ Actualizar cliente del tipo 0
 #### Borrar un cliente
 `DELETE cliente/{id}`
 
-#### Obtener el stock de un cliente
-`GET cliente/{id}/stock`
-
 ## Ventas
 
 #### Obtener los medios de pago
 `GET /venta/medios_pago`
-Devuelve una lista con los medios de pago disponibles
 
 respuesta:
 ```json
