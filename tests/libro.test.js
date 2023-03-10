@@ -99,6 +99,7 @@ describe('Crear libro POST /libro', function () {
 
         //console.log(res.body);
         
+        libro.personas = personas;
         libro.autores = res.body.data.autores;
         libro.ilustradores = res.body.data.ilustradores;
 
@@ -109,8 +110,8 @@ describe('Crear libro POST /libro', function () {
 
     it('Las personas tienen el libro asignado', async () => {
 
-        let autor       = (await request(app).get('/persona/'+libro.autores[0].id)).body;
-        let ilustrador  = (await request(app).get('/persona/'+libro.ilustradores[0].id)).body;
+        let autor       = (await request(app).get('/persona/'+libro.personas[0].id)).body;
+        let ilustrador  = (await request(app).get('/persona/'+libro.personas[1].id)).body;
 
         //Revisar que los autores e ilustradores tengan ese libro asociado
         chai.expect(     autor.libros.map(l => l.isbn)).to.deep.include(libro.isbn);
@@ -157,9 +158,10 @@ describe('Actualizar libro PUT /libro/:isbn', function () {
     });
 
     it('Actualizamos una persona que no esta en el libro', async () => {
+        //console.log(`PUT /libro${libro.isbn}/`, libro.personas);
         const res = await request(app)
             .put('/libro/'+libro.isbn+'/personas')
-            .send(libro.autores);
+            .send(libro.personas);
 
         //console.log(res.body);
         chai.expect(res.status).to.equal(201);
@@ -184,11 +186,9 @@ describe('DELETE /libro', function () {
         const res = await request(app)
             .delete(`/libro/${libro.isbn}/personas`)
             .send([{
-                ...libro.autores[0],
+                ...libro.personas[0],
                 tipo: 0,
             }]);
-
-        //console.log(res.body);
 
         chai.expect(res.status).to.equal(200);
         chai.expect(res.body).to.have.property('success');
@@ -199,7 +199,7 @@ describe('DELETE /libro', function () {
         const res = await request(app)
             .delete(`/libro/${libro.isbn}/personas`)
             .send([{
-                ...libro.autores[0],
+                id: -1,
                 tipo: 0,
             }]);
 
@@ -230,9 +230,9 @@ describe('DELETE /libro', function () {
 
     it('Las personas no tienen más el libro asignado', async () => {
 
-        let autor       = (await request(app).get('/persona/'+libro.autores[0].id)).body;
+        let autor       = (await request(app).get('/persona/'+libro.personas[0].id)).body;
         //console.log(autor);
-        let ilustrador  = (await request(app).get('/persona/'+libro.ilustradores[0].id)).body;
+        let ilustrador  = (await request(app).get('/persona/'+libro.personas[1].id)).body;
         //console.log(ilustrador);
 
         //Revisar que los autores e ilustradores tengan ese libro asociado

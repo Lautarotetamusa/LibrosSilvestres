@@ -40,7 +40,9 @@ CREATE TABLE clientes(
     email VARCHAR(60) DEFAULT "",
 
     cuit VARCHAR(15) DEFAULT NULL,
-    cond_fiscal TINYINT DEFAULT NULL,
+    cond_fiscal VARCHAR(50) NOT NULL,
+    razon_social VARCHAR(50) NOT NULL,
+    domicilio VARCHAR(100) NOT NULL,
 
     tipo TINYINT DEFAULT 0,
 

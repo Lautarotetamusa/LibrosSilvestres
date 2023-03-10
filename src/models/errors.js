@@ -38,6 +38,13 @@ export function parse_error(res, error){
             success: false,
             error: error.message
         });
+
+    if(error instanceof SyntaxError){
+        return res.status(400).json({
+            success: false,
+            error: "Json error:" + error.message
+        })
+    }
         
     console.log("parse_error:", error);
     return res.status(500).json({

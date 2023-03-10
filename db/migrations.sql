@@ -34,3 +34,12 @@ CREATE TABLE stock_cliente(
     FOREIGN KEY (id_cliente) REFERENCES clientes(id)
 );
 
+ALTER TABLE clientes DROP COLUMN cond_fiscal;
+ALTER TABLE clientes ADD cond_fiscal VARCHAR(50) NOT NULL;
+ALTER TABLE clientes ADD razon_social VARCHAR(50) NOT NULL;
+ALTER TABLE clientes ADD domicilio VARCHAR(100) NOT NULL;
+
+
+ALTER TABLE clientes MODIFY cond_fiscal VARCHAR(50) DEFAULT NULL;
+ALTER TABLE clientes MODIFY razon_social VARCHAR(50) DEFAULT NULL;
+ALTER TABLE clientes MODIFY domicilio VARCHAR(100) DEFAULT NULL;

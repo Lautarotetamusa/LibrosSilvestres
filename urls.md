@@ -193,6 +193,21 @@ Borra todas las relaciones con las personas
 
 #### Obtener el stock de un cliente
 `GET cliente/{id}/stock`
+respuesta:
+```json
+[
+  {
+    "titulo": "Dama de corazones",
+    "isbn": "97898712345",
+    "stock": 8
+  },
+  {
+    "titulo": "Breviario",
+    "isbn": "98765432100",
+    "stock": 3
+  }
+]
+```
 
 #### Crear cliente
 `POST /cliente`
@@ -211,10 +226,12 @@ Clientes del tipo 1 (inscripto)
     "nombre": "Libreria 3",
     "email": "libreria3@gmail.com", //No olbigatorio, se hace null si no existe
     "tipo": 1,
-    "cuit": 434919798,
-    "cond_fiscal": 1
+    "cuit": 434919798
 }
 ```
+Si el cuit no esta cargado en afip devolver un error 400
+Si se encuentra el cuit carga desde afip datos relacionados a esa persona
+
 
 #### Actualizar cliente
 `PUT /cliente/{id}`
@@ -225,8 +242,7 @@ Actualizar cliente del tipo 0 al tipo 1
     "nombre": "Libreria 3",
     "email": "libreria3@gmail.com",
     "tipo": 1,
-    "cuit": 434919798,
-    "cond_fiscal": 1
+    "cuit": 434919798
 }
 ```
 
@@ -246,26 +262,9 @@ Actualizar cliente del tipo 0
 #### Obtener los medios de pago
 `GET /venta/medios_pago`
 
-respuesta:
-```json
-[
-  {
-    "titulo": "Dama de corazones",
-    "isbn": "97898712345",
-    "stock": 8
-  },
-  {
-    "titulo": "Breviario",
-    "isbn": "98765432100",
-    "stock": 3
-  }
-]
-```
-
 #### Nueva venta
 `POST /venta`
-
-
+Peticion:
 ```json
 {
     "medio_pago": 0,
@@ -286,6 +285,8 @@ respuesta:
 Si el id del cliente no existe devuelve un error 404 NotFound  
 Si algun isbn no existe devuelve un error 404 NotFound  
 Si el stock de algun libro no es suficiente devuelve un error 400  
+
+Emite una factura nueva en afip, el pdf se guarda en /facturas/${path}
 
 ## Consignaciones
 

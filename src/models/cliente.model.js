@@ -27,14 +27,14 @@ export class Cliente{
         if(!Cliente.tipos[request.tipo])
             throw new ValidationError("El tipo del cliente no es correcto [0,1]");
 
-        if (request.tipo == Cliente.inscripto)
-            await Cliente.validate_inscripto(request);
-
         if (!request.nombre)
             throw new ValidationError("El nombre es obligatorio");
 
         if (!('email' in request))
             this.email = ""
+
+        if (request.tipo == Cliente.inscripto)
+            await Cliente.validate_inscripto(request);
     }
     
     static async validate_inscripto(request){
@@ -43,17 +43,10 @@ export class Cliente{
 
        if (await Cliente.cuil_exists(request.cuit))
             throw new Duplicated(`Ya existe un cliente con cuil ${request.cuit}`)
-
-        const cliente = await afip.RegisterScopeFive.getTaxpayerDetails(request.cuit);
-        console.log("cliente:", cliente);
-        if (cliente === null)
-            throw new NotFound(`La persona con CUIT ${request.cuit} no está cargada en afip`);
     }
 
-    async get_afip_data(){
-        let afip_data = await afip.RegisterScopeFive.getTaxpayerDetails(this.cuit);
-        //console.log("afip_data: ", JSON.stringify(afip_data, null, 4));
-
+    async set_afip_data(afip_data){
+        console.log("afip_data:", JSON.stringify(afip_data, null, 4));
         if (!afip_data.datosGenerales.domicilioFiscal.localidad)
             afip_data.datosGenerales.domicilioFiscal.localidad = 'CAPITAL FEDERAL'
 
@@ -97,6 +90,12 @@ export class Cliente{
     }
 
     async insert() {
+        const afip_data = await afip.RegisterScopeFive.getTaxpayerDetails(this.cuit);
+        if (afip_data === null)
+            throw new NotFound(`La persona con CUIT ${request.cuit} no está cargada en afip`);
+
+        this.set_afip_data(afip_data);
+
         let res = (await conn.query(`
             INSERT INTO ${table_name} SET ?`
         , this))[0];
@@ -109,7 +108,7 @@ export class Cliente{
         if (data.tipo != this.tipo && data.tipo == Cliente.inscripto){
             await Cliente.validate_inscripto(data);
             if (data.cuit && await Cliente.cuil_exists(data.cuit))
-                throw new Duplicated(`Ya existe un cliente con cuil ${data.cuit}`)
+                throw new Duplicated(`Ya existe un cliente con cuit ${data.cuit}`)
         } 
         if (this.tipo == Cliente.inscripto){
             if (data.cuit && await Cliente.cuil_exists(data.cuit))

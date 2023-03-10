@@ -58,10 +58,6 @@ export class Venta{
         else{
             this.cliente = await Cliente.get_by_id(req);
         }
-        if (this.cliente.tipo == Cliente.inscripto)
-            await this.cliente.get_afip_data();
-        else
-            this.cliente.consumidor_final();
 
         let date = new Date().toISOString()
             .replace(/\..+/, '')     // delete the . and everything after;
@@ -69,7 +65,7 @@ export class Venta{
             .replaceAll('-', '_')
             .replaceAll(':', '');
 
-        this.path = this.cliente.razon_social.replaceAll(' ', '')+'_'+date+'.pdf'; 
+        this.path = this.cliente.nombre.replaceAll(' ', '')+'_'+date+'.pdf'; 
     }
 
     async set_libros(req){
