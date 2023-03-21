@@ -342,7 +342,7 @@ Si el id del cliente no existe devuelve un error 404 NotFound
 Si algun isbn no existe devuelve un error 404 NotFound  
 Si el stock de algun libro no es suficiente devuelve un error 400  
 
-Emite una factura nueva en afip, el pdf se guarda en /facturas/${path}
+Emite una factura nueva en afip, el pdf se guarda en facturas/${path}
 
 ## Consignaciones
 

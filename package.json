@@ -24,7 +24,8 @@
     "test_libro": "mocha tests/libro.test.js",
     "test_persona": "mocha tests/persona.test.js",
     "test_cliente": "mocha --timeout 4000 tests/cliente.test.js",
-    "test_venta": "mocha --timeout 4000 tests/venta.test.js"
+    "test_venta": "mocha --timeout 4000 tests/venta.test.js",
+    "test": "find ./tests -name '*.test.js' | xargs mocha -R spec"
   },
   "keywords": [],
   "author": "",

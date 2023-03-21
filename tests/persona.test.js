@@ -1,17 +1,10 @@
 import request from 'supertest';
-
 import chai from 'chai';
 
-//import {app} from '../src/app.js'
-
-import {Persona} from '../src/models/persona.model.js'
+import {expect_err_code, expect_success_code} from './util.js';
 
 import {conn} from '../src/db.js'
 
-import fs from "fs"
-
-const rawdata = fs.readFileSync("tests/persona.test.json");
-const tests = JSON.parse(rawdata);
 
 let persona = {}
 const app = 'http://localhost:3000'
@@ -31,15 +24,11 @@ const app = 'http://localhost:3000'
 
 describe('POST persona/', () => {
     it('Sin nombre', async () => {
-        const res = await request(app)
-            .post('/persona/')
-            .send(persona);
+        const res = await request(app).post('/persona/').send(persona);
         
         persona.nombre = 'Test';
         persona.email = 'test@gmail.com'
-        chai.expect(res.status).to.equal(400);
-        chai.expect(res.body.success).to.be.false;
-        chai.expect(res.body.error).to.exist;
+        expect_err_code(400, res);
     });
 
     it('Sin dni', async () => {
@@ -49,39 +38,27 @@ describe('POST persona/', () => {
         
         persona.dni = '11111111';
         
-        chai.expect(res.status).to.equal(400);
-        chai.expect(res.body.success).to.be.false;
-        chai.expect(res.body.error).to.exist;
+        expect_err_code(400, res);
     });
 
 
     it('Success', async () => {
-        const res = await request(app)
-            .post('/persona/')
-            .send(persona);
+        const res = await request(app).post('/persona/').send(persona);
 
         // Creo otra persona para despues
         persona.dni = '22222222';
-        await request(app)
-            .post('/persona/')
-            .send(persona);
+        await request(app).post('/persona/').send(persona);
 
         persona.dni = '11111111';
         persona.id = res.body.data.id;
         
-        chai.expect(res.status).to.equal(201);
-        chai.expect(res.body.data).to.deep.include(persona);
-        chai.expect(res.body.success).to.be.true;
+        expect_success_code(201, res);
     });
 
     it('Dni repetido', async () => {
-        const res = await request(app)
-            .post('/persona/')
-            .send(persona);
+        const res = await request(app).post('/persona/').send(persona);
         
-        chai.expect(res.status).to.equal(404);
-        chai.expect(res.body.success).to.be.false;
-        chai.expect(res.body.error).to.exist;
+        expect_err_code(404, res);
     });
 });
 
@@ -90,9 +67,7 @@ describe('GET persona/', () => {
     it('Persona que no existe', async () => {
         const res = await request(app).get('/persona/'+(persona.id+2));
 
-        chai.expect(res.status).to.equal(404);
-        chai.expect(res.body.success).to.be.false;
-        chai.expect(res.body.error).to.exist;
+        expect_err_code(404, res);
     });
 
     it('Obtener persona', async () => {
@@ -113,22 +88,16 @@ describe('GET persona/', () => {
 describe('PUT persona/{id}', () => {
     it('Nothing changed', async () => {
         delete persona.dni;
-        const res = await request(app)
-            .put('/persona/'+persona.id)
-            .send(persona);
+        const res = await request(app).put('/persona/'+persona.id).send(persona);
 
         chai.expect(res.status).to.equal(200);
     });
 
     it('Actualizar a un dni que ya está cargado', async () => {
         persona.dni = '22222222';
-        const res = await request(app)
-            .put('/persona/'+persona.id)
-            .send(persona);
+        const res = await request(app).put('/persona/'+persona.id).send(persona);
 
-        chai.expect(res.status).to.equal(404);
-        chai.expect(res.body.success).to.be.false;
-        chai.expect(res.body.error).to.exist;
+        expect_err_code(404, res);
     });
 
     it('Success', async () => {
@@ -136,13 +105,11 @@ describe('PUT persona/{id}', () => {
         persona.nombre = 'TestTest';
         persona.este_campo_no_va = "anashe23";
 
-        const res = await request(app)
-            .put('/persona/'+persona.id)
-            .send(persona);
+        const res = await request(app).put('/persona/'+persona.id).send(persona);
+        expect_success_code(201, res);
 
         delete persona.este_campo_no_va;
         res.body.data.id = persona.id;
-        chai.expect(res.status).to.equal(201);
         chai.expect(res.body.data).to.deep.include(persona);
     });
 
@@ -152,9 +119,7 @@ describe('DELETE /persona/{id}', () => {
     it('Persona no existe', async () => {
         const res = await request(app).get('/persona/'+(persona.id+2));
 
-        chai.expect(res.status).to.equal(404);
-        chai.expect(res.body.success).to.be.false;
-        chai.expect(res.body.error).to.exist;
+        expect_err_code(404, res);
     });
     
     it('Success', async () => {

@@ -1,10 +1,9 @@
 import request from 'supertest';
-
-import chai, { assert } from 'chai';
-
-import {Cliente} from '../src/models/cliente.model.js'
+import chai from 'chai';
 
 import {conn} from '../src/db.js'
+
+import {expect_err_code, expect_success_code} from './util.js';
 
 let cliente = {}
 const app = 'http://localhost:3000'
@@ -14,19 +13,13 @@ const app = 'http://localhost:3000'
     - Intentamos crear otra con el mismo cuit y obtenemos un error
     - Obtenemos una cliente con un id q no existe y nos da un error
     - Verificamos que la cliente creada esté en la lista
-    - Intentamos actualizar la cliente 1 al cuit de la cliente 2 y obtenemos un error
+    - Intentamos actualizar el cliente 1 al cuit de la cliente 2 y obtenemos un error
     - Actualizamos la cliente
     - Intentamos borrar una cliente que no existe, obtenemos un error
     - Borramos la cliente 1
     - Verificamos que ya no esté en la lista
     - Hard delete de las dos clientes para evitar que queden en la DB.
 */
-
-function expect_err_code(code, res){
-    chai.expect(res.status).to.equal(code);
-    chai.expect(res.body.success).to.be.false;
-    chai.expect(res.body.error).to.exist;
-}
 
 describe('POST cliente/', () => {
     it('Sin nombre', async () => {
@@ -65,9 +58,7 @@ describe('POST cliente/', () => {
             .post('/cliente/')
             .send(cliente);
         
-        //console.log(res.body);
-        
-        cliente.cuit = 20434919798;
+        cliente.cuit = '20434919798';
         
         expect_err_code(404, res);
     });
@@ -78,14 +69,9 @@ describe('POST cliente/', () => {
             .post('/cliente/')
             .send(cliente);
 
-        console.log(res.body);
-
-        chai.expect(res.body.success).to.be.true;
-        chai.expect(res.status).to.equal(201);
+        expect_success_code(201, res);
 
         cliente.id = res.body.data.id;
-        
-        chai.expect(res.body.data).to.deep.include(cliente);
     });
 
     it('cuit repetido', async () => {

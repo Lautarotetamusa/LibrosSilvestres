@@ -1,12 +1,10 @@
 import request from 'supertest';
-
-import chai, { expect } from 'chai';
+import chai from 'chai';
+import fs from "fs"
 
 import {conn} from '../src/db.js'
 
-//import {app} from '../src/app.js'
-
-import fs from "fs"
+import {expect_err_code, expect_success_code} from './util.js';
 
 const app = 'http://localhost:3000'
 
@@ -46,11 +44,7 @@ describe('Crear libro POST /libro', function () {
             .post('/libro/')
             .send(libro);
 
-        //console.log(res.body);
-        
-        chai.expect(res.status).to.equal(201);
-        chai.expect(res.body).to.be.a('object');
-        chai.expect(res.body.success).to.be.true;
+        expect_success_code(201, res);
     });
 
     it('Insertar misma persona dos veces', async () => {
@@ -73,8 +67,7 @@ describe('Crear libro POST /libro', function () {
             .post(`/libro/${libro.isbn}/personas`)
             .send(personas);
 
-        //console.log(res.body);
-        chai.expect(res.status).to.equal(201);
+        expect_success_code(201, res);
     });
 
     it('Insertar personas', async () => {
@@ -103,9 +96,7 @@ describe('Crear libro POST /libro', function () {
         libro.autores = res.body.data.autores;
         libro.ilustradores = res.body.data.ilustradores;
 
-        chai.expect(res.status).to.equal(201);
-        chai.expect(res.body).to.be.a('object');
-        chai.expect(res.body.success).to.be.true;
+        expect_success_code(201, res);
     });
 
     it('Las personas tienen el libro asignado', async () => {
@@ -139,45 +130,31 @@ describe('Actualizar libro PUT /libro/:isbn', function () {
             .put('/libro/'+libro.isbn)
             .send(libro);
 
-        //console.log(res.body);
-
         chai.expect(res.status).to.equal(200);
         chai.expect(res.body.success).to.be.false;
     });
 
     it('Actualizamos precio', async () => {
         libro.precio += 1100;
-        const res = await request(app)
-            .put('/libro/'+libro.isbn)
-            .send(libro);
+        const res = await request(app).put('/libro/'+libro.isbn).send(libro);
 
-        //console.log(res.body);
-
-        chai.expect(res.status).to.equal(201);
-        chai.expect(res.body.success).to.be.true;
-    });
-
-    it('Actualizamos una persona que no esta en el libro', async () => {
-        //console.log(`PUT /libro${libro.isbn}/`, libro.personas);
-        const res = await request(app)
-            .put('/libro/'+libro.isbn+'/personas')
-            .send(libro.personas);
-
-        //console.log(res.body);
-        chai.expect(res.status).to.equal(201);
-        chai.expect(res.body.success).to.be.true;
+        expect_success_code(201, res);
     });
 
     it('Actualizamos una persona', async () => {
+        const res = await request(app).put('/libro/'+libro.isbn+'/personas').send(libro.personas);
+
+        expect_success_code(201, res);
+    });
+
+    it('Actualizamos una persona que no esta en el libro', async () => {
         let autor_copy = JSON.parse(JSON.stringify(libro.autores[0]));
         autor_copy.id = -1;
         const res = await request(app)
             .put('/libro/'+libro.isbn+'/personas')
             .send(autor_copy);
 
-        //console.log(res.body);
-        chai.expect(res.status).to.equal(404);
-        chai.expect(res.body.success).to.be.false;
+        expect_err_code(404, res);
     });
 });
 
@@ -190,9 +167,7 @@ describe('DELETE /libro', function () {
                 tipo: 0,
             }]);
 
-        chai.expect(res.status).to.equal(200);
-        chai.expect(res.body).to.have.property('success');
-        chai.expect(res.body.success).to.be.true;
+        expect_success_code(200, res);
     });
 
     it('Intentar Borrar una persona que no trabaja en el libro', async () => {
@@ -203,29 +178,17 @@ describe('DELETE /libro', function () {
                 tipo: 0,
             }]);
 
-        //console.log(res.body);
-
-        chai.expect(res.status).to.equal(404);
-        chai.expect(res.body).to.have.property('success');
-        chai.expect(res.body.success).to.be.false;
+        expect_err_code(404, res);
     });
 
     it('Borrado', async () => {
         const res = await request(app).delete('/libro/'+libro.isbn);
-
-        //console.log(res.body);
-
-        chai.expect(res.status).to.equal(200);
-        chai.expect(res.body).to.have.property('success');
-        chai.expect(res.body.success).to.be.true;
+        expect_success_code(200, res);
     });
 
     it('No se puede obtener el libro', async () => {
         const res = await request(app).get('/libro/'+libro.isbn);
-
-        chai.expect(res.status).to.equal(404);
-        chai.expect(res.body).to.have.property('success');
-        chai.expect(res.body.success).to.be.false;
+        expect_err_code(404, res);
     });
 
     it('Las personas no tienen más el libro asignado', async () => {

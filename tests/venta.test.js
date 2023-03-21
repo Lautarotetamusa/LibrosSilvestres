@@ -1,30 +1,12 @@
 import request from 'supertest';
-import chai, { assert } from 'chai';
+import chai from 'chai';
 import fs from 'fs';
 
 import {conn} from '../src/db.js'
-
+import {expect_err_code, expect_success_code} from './util.js';
 import { Venta } from '../src/models/venta.model.js';
 
-
 const app = 'http://localhost:3000'
-
-function expect_err_code(code, res){
-    if(code != res.status)
-        console.error(res.body);
-
-    chai.expect(res.status).to.equal(code);
-    chai.expect(res.body.success).to.be.false;
-    chai.expect(res.body.error).to.exist;
-}
-function expect_success_code(code, res){
-    if (code != res.status)
-        console.error(res.body);
-
-    chai.expect(res.status).to.equal(code);
-    chai.expect(res.body.success).to.be.true;
-    chai.expect(res.body.error).to.not.exist;
-}
 
 let cliente = {
     cuit: 20442317632,
@@ -37,6 +19,18 @@ let venta = {
     medio_pago: Venta.str_medios_pago.length+1,
     descuento: 10
 }
+
+/*
+    - Crear un cliente nuevo
+    - Seleccionar 3 libros de la pagina 5 de libros /libros?page=5
+    - Setear el stock de esos 3 libros en 3
+    - Chequear errores de bad request
+    - Realizar la venta
+    - Revisar que los 3 libros tenga ahora stock 0
+    - Revisar que la factura haya sido emitida (que exista el archivo)
+    - Revisar que el total de la venta sea correcto
+    - Revisar que el cliente tenga la venta en /cliente/{id}/ventas
+*/
 
 describe('VENTA', () => {
     after('delete cliente', async () => {
@@ -119,7 +113,7 @@ describe('VENTA', () => {
     });
 
     describe('POST /venta', () => {
-        describe('Errores', () => {
+        describe('Bad request', () => {
             it('Venta no tiene cliente', async () => {
                 let aux_cliente = venta.cliente;
                 delete venta.cliente;
@@ -158,6 +152,13 @@ describe('VENTA', () => {
                     chai.expect(res.status).to.equal(200);
                     chai.expect(res.body.stock).to.equal(0);
                 }
+            });
+            it('El cliente tiene la venta cargada', async () => {
+                
+                const res = await request(app).get(`/cliente/${cliente.id}/ventas/`);
+            
+                chai.expect(res.status).to.equal(200);
+                chai.expect(res.body[0]).to.exist;
             });
             it('El total de la venta está bien', async () => {
                 let total = 0;
