@@ -166,11 +166,13 @@ export class Libro {
         let response = (await conn.query(`
             SELECT * FROM ${table_name} 
             WHERE ${table_name}.isbn = ${isbn}
-            AND is_deleted = 0
         `))[0];
 
         if (!response.length)
             throw new NotFound(`El libro con isbn ${isbn} no se encontro`)
+        
+        if(response[0].is_deleted == 1)
+            throw new NotFound(`El libro con isbn ${isbn} esta dado de baja`)
 
         return new Libro(response[0]);
     }
@@ -189,6 +191,20 @@ export class Libro {
 
         this.autores      = personas.filter(p => p.tipo == Persona.tipos.autor);
         this.ilustradores = personas.filter(p => p.tipo == Persona.tipos.ilustrador);
+    }
+
+    static async get_ventas(isbn){
+        let ventas = (await conn.query(`
+            SELECT  
+                ventas.id as id_venta, fecha, medio_pago, total, file_path,
+                id_cliente
+            FROM libros_ventas
+            INNER JOIN ventas
+                ON ventas.id = libros_ventas.id_venta
+            WHERE libros_ventas.isbn = ${isbn}
+        `))[0];
+
+        return ventas;
     }
 
 

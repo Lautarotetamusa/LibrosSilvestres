@@ -19,6 +19,11 @@ export class Cliente{
         if (request.tipo == Cliente.inscripto){
             this.cuit = request.cuit;
         }
+
+        this.razon_social = request.razon_social || "";
+        this.domicilio    = request.domicilio || "";
+        this.cond_fiscal  = request.cond_fiscal || "";
+		request.cond_fiscal;
     }
 
     static async validate(request) {
@@ -92,7 +97,7 @@ export class Cliente{
     async insert() {
         const afip_data = await afip.RegisterScopeFive.getTaxpayerDetails(this.cuit);
         if (afip_data === null)
-            throw new NotFound(`La persona con CUIT ${request.cuit} no está cargada en afip`);
+            throw new NotFound(`La persona con CUIT ${this.cuit} no está cargada en afip`);
 
         this.set_afip_data(afip_data);
 
@@ -150,6 +155,18 @@ export class Cliente{
             FROM stock_cliente as sc
             INNER JOIN libros
                 ON libros.isbn = sc.isbn
+            WHERE id_cliente=${this.id}
+
+        `))[0];
+        return res;
+    }
+
+    async get_ventas(){
+        let res = (await conn.query(`
+
+            SELECT 
+                id, fecha, total, file_path
+            FROM ventas
             WHERE id_cliente=${this.id}
 
         `))[0];

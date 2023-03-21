@@ -75,7 +75,7 @@ export class Venta{
             this.libros[i].cantidad = req[i].cantidad;
 
             if (this.libros[i].stock < req[i].cantidad)
-                throw new ValidationError(`El libro ${libros[i].titulo} con isbn ${libros[i].isbn} no tiene suficiente stock`)
+                throw new ValidationError(`El libro ${this.libros[i].titulo} con isbn ${this.libros[i].isbn} no tiene suficiente stock`)
         }
 
         this.total = this.libros.reduce((acumulador, libro) => 
@@ -145,30 +145,11 @@ export class Venta{
     static async get_all(){
         return (await conn.query(`
             SELECT 
-                fecha, medio_pago, total, file_path,
+                ventas.id, fecha, medio_pago, total, file_path,
                 cuit, nombre as nombre_cliente, email, cond_fiscal, tipo
             FROM ventas
             INNER JOIN clientes
                 ON ventas.id_cliente = clientes.id
         `))[0];
-    }
-
-    static async get_by_isbn(isbn){
-        let ventas = (await conn.query(`
-            SELECT 
-                libros.isbn, titulo, cantidad, precio_venta, 
-                fecha, medio_pago, total, file_path
-                cuit, nombre as nombre_cliente, email, cond_fiscal, tipo
-            FROM libros
-            INNER JOIN libros_ventas
-                ON libros_ventas.isbn = libros.isbn
-            INNER JOIN ventas
-                ON ventas.id = libros_ventas.id_venta
-            INNER JOIN clientes
-                ON ventas.id_cliente = clientes.id
-            WHERE libros.isbn = ${isbn}
-        `))[0];
-
-        return ventas;
     }
 }

@@ -159,6 +159,15 @@ LibroController.manage_personas = async(req, res) => {
     }
 }
 
+LibroController.get_ventas = async(req, res) => {
+    try {
+        let ventas = await Libro.get_ventas(req.params.isbn);
+        return res.json(ventas);
+    } catch (error) {
+        return parse_error(res, error);
+    }
+}
+
 LibroController.get_one = async(req, res) => {
     try {
         let libro = await Libro.get_by_isbn(req.params.isbn)

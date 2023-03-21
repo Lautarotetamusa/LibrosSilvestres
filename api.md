@@ -98,6 +98,26 @@ Si algun id de una persona pasado no existe devuelve un error 404 NotFound
 `GET /libro/{isbn}`
 Devuelve la data del libro y las personas relacionadas con este
 
+#### Obtener ventas de un libro
+
+`GET /libro/{isbn}/ventas`
+
+Response:
+```json
+[
+  {
+    "id_venta": 12,
+    "fecha": "2023-01-20T17:13:07.000Z",
+    "medio_pago": 0,
+    "total": 7501,
+    "file_path":"MARIACAROLINAMUSA_2023_03_07_185436.pdf",
+    "id_cliente": 4
+  }
+]
+```
+Devuelve una lista de todas las ventas de ese libro
+
+
 #### Actualizar libro por isbn
 `PUT /libro{isbn}`
 ```json
@@ -176,14 +196,11 @@ Si alguna persona no se encuentra simplemente actualiza las otras
 Nunca devuelve un error
 
 #### Borrar un libro
-`DELETE /libro{isbn}`
+`DELETE /libro/{isbn}`
 
 Borra todas las relaciones con las personas
 
 ## Clientes
-
-#### Obtener lista de las condiciones fiscales
-`GET /cliente/cond_fiscales`
 
 #### Obtener todos los clientes
 `GET /cliente`
@@ -191,9 +208,48 @@ Borra todas las relaciones con las personas
 #### Obtener cliente
 `GET /cliente/{id}`
 
+Response:
+```json
+{
+  "id": 76,
+  "nombre": "Libreria pepito",
+  "email": null,
+  "tipo": 1,
+  "cuit": "20434919798",
+  "razon_social": "LAUTARO TETA MUSA",
+  "domicilio": "URQUIZA 1159 Piso:4 Dpto:4 - ROSARIO NORTE SANTA FE",
+  "cond_fiscal": "IVA EXENTO"
+}
+```
+
+#### Obtener ventas de un cliente
+`GET /cliente/{id}/ventas`
+
+Response:
+```json
+[
+  {
+    "id": 57,
+    "titulo": "Dama de corazones",
+    "cantidad": 1,
+    "fecha": "2023-03-07T22:24:49.000Z",
+    "total": 4274.31,
+    "file_path": "Lautaroteta_2023_03_07_222449.pdf"
+  },
+  {
+    "id": 58,
+    "titulo": "Dama de corazones",
+    "cantidad": 1,
+    "fecha": "2023-03-07T22:25:49.000Z",
+    "total": 4274.31,
+    "file_path": "Lautaroteta_2023_03_07_222549.pdf"
+  }
+]
+```
+
 #### Obtener el stock de un cliente
 `GET cliente/{id}/stock`
-respuesta:
+Response:
 ```json
 [
   {
@@ -215,8 +271,8 @@ respuesta:
 Clientes del tipo 0 (particular)
 ```json
 {
-    "nombre": "jose", //No olbigatorio, se hace null si no existe
-    "email": "jose@gmail.com",
+    "nombre": "jose", 
+    "email": "jose@gmail.com", //No olbigatorio, se hace null si no existe
 }
 ```
 

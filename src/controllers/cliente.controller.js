@@ -70,6 +70,18 @@ ClienteController.get_stock = async(req, res) => {
     }
 }
 
+ClienteController.get_ventas = async(req, res) => {
+    try {
+        const cliente = await Cliente.get_by_id(req.params.id);
+        
+        let stock = await cliente.get_ventas();
+        return res.json(stock)
+    } catch (error) {
+        return parse_error(res, error);
+    }
+}
+
+
 ClienteController.delet = async (req, res) => {
     try {
         await Cliente.delete(req.params.id)
@@ -88,7 +100,7 @@ ClienteController.get_all = async function(req, res){
     try {
         let clientes = await Cliente.get_all()
         
-        res.json(clientes)
+        return res.json(clientes)
     } catch (error) {
         return parse_error(res, error);
     }
@@ -105,7 +117,7 @@ ClienteController.get_one = async function(req, res){
     try {
         let cliente = await Cliente.get_by_id(params.id);
 
-        res.json(cliente);
+        return res.json(cliente);
     } catch (error) {
         return parse_error(res, error); 
     }

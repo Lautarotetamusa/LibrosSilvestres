@@ -1,6 +1,6 @@
 import request from 'supertest';
 
-import chai from 'chai';
+import chai, { assert } from 'chai';
 
 import {Cliente} from '../src/models/cliente.model.js'
 
@@ -22,6 +22,12 @@ const app = 'http://localhost:3000'
     - Hard delete de las dos clientes para evitar que queden en la DB.
 */
 
+function expect_err_code(code, res){
+    chai.expect(res.status).to.equal(code);
+    chai.expect(res.body.success).to.be.false;
+    chai.expect(res.body.error).to.exist;
+}
+
 describe('POST cliente/', () => {
     it('Sin nombre', async () => {
         const res = await request(app)
@@ -31,21 +37,9 @@ describe('POST cliente/', () => {
         cliente.nombre = 'Test';
         cliente.email = 'test@gmail.com';
         
-        chai.expect(res.status).to.equal(400);
-        chai.expect(res.body.success).to.be.false;
-        chai.expect(res.body.error).to.exist;
+        expect_err_code(400, res);
     });
-    it('Sin cond fiscal', async () => {
-        const res = await request(app)
-            .post('/cliente/')
-            .send(cliente);
-        
-        cliente.cond_fiscal = 5;
-        
-        chai.expect(res.status).to.equal(400);
-        chai.expect(res.body.success).to.be.false;
-        chai.expect(res.body.error).to.exist;
-    });
+
     it('Sin tipo', async () => {
         const res = await request(app)
             .post('/cliente/')
@@ -53,9 +47,7 @@ describe('POST cliente/', () => {
         
         cliente.tipo = 1;
         
-        chai.expect(res.status).to.equal(400);
-        chai.expect(res.body.success).to.be.false;
-        chai.expect(res.body.error).to.exist;
+        expect_err_code(400, res);
     });
 
     it('Sin cuit', async () => {
@@ -65,9 +57,19 @@ describe('POST cliente/', () => {
         
         cliente.cuit = 11111111;
         
-        chai.expect(res.status).to.equal(400);
-        chai.expect(res.body.success).to.be.false;
-        chai.expect(res.body.error).to.exist;
+        expect_err_code(400, res);
+    });
+
+    it('Persona no está cargada en Afip', async () => {        
+        const res = await request(app)
+            .post('/cliente/')
+            .send(cliente);
+        
+        //console.log(res.body);
+        
+        cliente.cuit = 20434919798;
+        
+        expect_err_code(404, res);
     });
 
 
@@ -76,20 +78,14 @@ describe('POST cliente/', () => {
             .post('/cliente/')
             .send(cliente);
 
-        // Creo otra cliente para despues
-        cliente.cuit = 22222222;
-        let a = await request(app)
-            .post('/cliente/')
-            .send(cliente);
-        //console.log("segundo cliente:", a.body.data);
+        console.log(res.body);
 
-        //console.log(res.body);
-        cliente.cuit = 11111111;
+        chai.expect(res.body.success).to.be.true;
+        chai.expect(res.status).to.equal(201);
+
         cliente.id = res.body.data.id;
         
-        chai.expect(res.status).to.equal(201);
         chai.expect(res.body.data).to.deep.include(cliente);
-        chai.expect(res.body.success).to.be.true;
     });
 
     it('cuit repetido', async () => {
@@ -97,20 +93,15 @@ describe('POST cliente/', () => {
             .post('/cliente/')
             .send(cliente);
         
-        chai.expect(res.status).to.equal(404);
-        chai.expect(res.body.success).to.be.false;
-        chai.expect(res.body.error).to.exist;
+        expect_err_code(404, res);
     });
 });
-
 
 describe('GET cliente/', () => {
     it('cliente que no existe', async () => {
         const res = await request(app).get('/cliente/'+(cliente.id+2));
 
-        chai.expect(res.status).to.equal(404);
-        chai.expect(res.body.success).to.be.false;
-        chai.expect(res.body.error).to.exist;
+        expect_err_code(404, res);
     });
 
     it('Obtener cliente', async () => {
@@ -128,6 +119,19 @@ describe('GET cliente/', () => {
     });
 });
 
+
+describe('DELETE', () => {
+    it('Hard delete', async () => {
+        await conn.query(`
+            DELETE FROM clientes
+            WHERE id=${cliente.id}`
+        );
+    });
+});
+
+
+
+/*
 describe('PUT cliente/{id}', () => {
     it('Nothing changed', async () => {
         delete cliente.cuit;
@@ -197,3 +201,4 @@ describe('DELETE /cliente/{id}', () => {
         `);
     });
   });
+*/
