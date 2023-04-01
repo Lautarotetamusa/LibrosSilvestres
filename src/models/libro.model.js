@@ -87,7 +87,7 @@ export class Libro {
     async update_stock(stock){
         await conn.query(`
             UPDATE ${table_name}
-            SET stock  = ${this.stock}+${stock}
+            SET stock  = ${this.stock+stock}
             WHERE isbn = ${this.isbn}
             AND is_deleted = 0
         `);

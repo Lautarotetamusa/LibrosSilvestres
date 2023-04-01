@@ -11,7 +11,6 @@ function parse_req(body){
     tipos_keys.forEach(tipo => {
         //Validamos que "autores" o "ilustradores" exista, si no existe le asignamos una lista vacia
         if (!body[tipo]) body[tipo] = []
-        
         //Validamos que "autores" o "ilustradores" sea de tipo [], si es de tipo {} creamos una lista con un solo elemento: [{obj}]
         if (!Array.isArray(body[tipo])) body[tipo] = [body[tipo]]
         
@@ -33,6 +32,7 @@ function parse_req(body){
 export const LibroController = {};
 
 LibroController.create = async (req, res) => {
+    console.log(req.body);
 
     try {
         let personas_data = [];  //Lista de personas validas y cargadas
@@ -40,7 +40,6 @@ LibroController.create = async (req, res) => {
         Libro.validate(req.body);                      //Validar la request
 
         await Libro.is_duplicated(req.body.isbn);
-
         const {indb, not_indb} = parse_req(req.body);  //Parsear la request
 
         //Validar los datos de las personas que no estan en la DB

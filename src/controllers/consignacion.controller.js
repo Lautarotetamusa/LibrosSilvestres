@@ -25,7 +25,10 @@ ConsignacionController.consignar = async(req, res) => {
 
         await emitir_comprobante(consignacion, "remito");
 
-        res.status(201).json(consignacion);
+        res.status(201).json({
+            success: true,
+            ...consignacion
+        });
 
     } catch (error) {
         return parse_error(res, error);

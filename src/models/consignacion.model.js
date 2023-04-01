@@ -16,6 +16,8 @@ export class Consignacion{
     }
 
     async set_client(req){
+        console.log("cliente:", req);
+
         if (typeof req == Object){
             Cliente.validate(req);
             this.cliente = new Cliente(req);
@@ -24,10 +26,6 @@ export class Consignacion{
         else{
             this.cliente = await Cliente.get_by_id(req);
         }
-        if (this.cliente.tipo == Cliente.inscripto)
-            await this.cliente.get_afip_data();
-        else
-            this.cliente.consumidor_final();
 
         let date = new Date().toISOString()
             .replace(/\..+/, '')     // delete the . and everything after;
@@ -46,7 +44,11 @@ export class Consignacion{
             this.libros[i].cantidad = req[i].cantidad;
 
             if (this.libros[i].stock < req[i].cantidad)
-                throw new ValidationError(`El libro ${libros[i].titulo} con isbn ${libros[i].isbn} no tiene suficiente stock`)
+                throw new ValidationError(`El libro ${this.libros[i].titulo} con isbn ${this.libros[i].isbn} no tiene suficiente stock`);
+        }
+
+        for (const libro of this.libros) {
+            await libro.update_stock(-libro.cantidad);
         }
     }
     

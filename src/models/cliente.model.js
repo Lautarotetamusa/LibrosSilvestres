@@ -52,6 +52,7 @@ export class Cliente{
 
     async set_afip_data(afip_data){
         console.log("afip_data:", JSON.stringify(afip_data, null, 4));
+
         if (!afip_data.datosGenerales.domicilioFiscal.localidad)
             afip_data.datosGenerales.domicilioFiscal.localidad = 'CAPITAL FEDERAL'
 
@@ -120,7 +121,8 @@ export class Cliente{
                 throw new Duplicated(`Ya existe un cliente con cuil ${data.cuit}`)
         }
 
-        this.tipo   = data.tipo     || this.tipo;
+        if ('tipo' in data)
+            this.tipo = data.tipo;
         this.cuit   = data.cuit     || this.cuit;
         this.nombre = data.nombre   || this.nombre;
         this.email  = data.email    || this.email;
@@ -174,7 +176,7 @@ export class Cliente{
     }
 
     async update_stock(libros){
-        console.log("libros: ", libros);
+        //console.log("libros: ", libros);
         let stock_clientes = libros.map(l => [this.id, l.cantidad, l.isbn])
         await conn.query(`
 
