@@ -1,0 +1,6 @@
+openssl genrsa -out private/private_key.key 2048
+
+openssl req -new 
+    -key private_key.key 
+    -subj "/C=AR/O=LibrosSilvestres/CN=LibrosSilvestres/serialNumber=CUIT 27249804024" 
+    -out solicitud_certificado.csr
