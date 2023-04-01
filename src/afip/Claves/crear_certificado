@@ -1,1 +1,0 @@
-openssl req -new -key private_key.key -subj "/C=AR/O=LibrosSilvestres/CN=LibrosSilvestres/serialNumber=CUIT 20434919798" -out afip.csr
