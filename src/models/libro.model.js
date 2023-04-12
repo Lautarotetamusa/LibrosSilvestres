@@ -229,12 +229,6 @@ export class Libro {
             OFFSET ${page * libros_per_page}
         `))[0];
 
-
-        for (let i in libros) {
-            let libro = new Libro(libros[i]);
-            await libro.get_personas();
-        }
-
         return libros;
     }
 
