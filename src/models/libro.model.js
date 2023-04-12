@@ -209,7 +209,16 @@ export class Libro {
 
 
     //TODO: Se hace una consulta a la DB por libro, no se si hay otra manera más rápida de hacerlo
-    static async get_all(page = 0){
+    static async get_all(){
+        let libros = (await conn.query(`
+            SELECT ${visible_fields}
+            FROM ${table_name}
+            WHERE is_deleted = 0
+        `))[0];
+
+        return libros;
+    }
+    static async get_paginated(page = 0){
         let libros_per_page = 10;
 
         let libros = (await conn.query(`
@@ -220,6 +229,7 @@ export class Libro {
             OFFSET ${page * libros_per_page}
         `))[0];
 
+
         for (let i in libros) {
             let libro = new Libro(libros[i]);
             await libro.get_personas();
@@ -227,4 +237,5 @@ export class Libro {
 
         return libros;
     }
+
 }

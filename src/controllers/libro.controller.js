@@ -179,9 +179,15 @@ LibroController.get_one = async(req, res) => {
 
 LibroController.get_all = async(req, res) => {
     try {
-        let libros = await Libro.get_all(req.query.page || 0);
+        let libros = [];
+        if ("page" in req.query){
+            libros = await Libro.get_paginated(req.query.page || 0);
+        }else{
+            libros = await Libro.get_all();
+        }
         res.json(libros);
     } catch (error) {
         return parse_error(res, error);
     }
 }
+

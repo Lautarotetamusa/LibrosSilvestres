@@ -23,7 +23,6 @@ export class Cliente{
         this.razon_social = request.razon_social || "";
         this.domicilio    = request.domicilio || "";
         this.cond_fiscal  = request.cond_fiscal || "";
-		request.cond_fiscal;
     }
 
     static async validate(request) {
