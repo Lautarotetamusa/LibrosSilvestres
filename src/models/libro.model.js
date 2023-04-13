@@ -179,7 +179,7 @@ export class Libro {
 
     async get_personas() {
         let personas = (await conn.query(`
-            SELECT dni, nombre, email, libros_personas.tipo, libros_personas.porcentaje
+            SELECT personas.id, dni, nombre, email, libros_personas.tipo, libros_personas.porcentaje
             FROM personas 
             INNER JOIN libros_personas
             INNER JOIN ${table_name}
