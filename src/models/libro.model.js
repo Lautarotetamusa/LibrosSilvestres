@@ -111,6 +111,7 @@ export class Libro {
                 await conn.query(`
                     INSERT INTO libros_personas 
                     SET id_persona=${persona.id},
+                    porcentaje=${persona.porcentaje || 0},
                     tipo=${persona.tipo},
                     isbn=${this.isbn}
                 `);

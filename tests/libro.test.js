@@ -99,8 +99,15 @@ describe('Crear libro POST /libro', function () {
         expect_success_code(201, res);
     });
 
-    it('Las personas tienen el libro asignado', async () => {
+    it('Checkear que los libros tengan las personas cargadas con todos los datos', async() => {
+        const res = (await request(app).get(`/libro/${libro.isbn}`)).body;
+        //console.log(res);
+        //console.log(libro);
+        chai.expect(res.autores).to.eql(libro.autores);
+        chai.expect(res.ilustradores).to.eql(libro.ilustradores);
+    });
 
+    it('Las personas tienen el libro asignado', async () => {
         let autor       = (await request(app).get('/persona/'+libro.personas[0].id)).body;
         let ilustrador  = (await request(app).get('/persona/'+libro.personas[1].id)).body;
 
