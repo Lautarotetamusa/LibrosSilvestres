@@ -41,6 +41,13 @@ ConsignacionController.liquidar = async(req, res) => {
 
     try {
         req.body.cliente = await Cliente.get_by_id(req.params.id);
+
+        if(req.body.cliente.tipo == Cliente.particular){
+            return res.status(400).json({
+                success: false,
+                error: "No se puede hacer una liquidacion a un cliente CONSUMIDOR FINAL"
+            })
+        }
   
         //Validar que los libros existan
         for (let i in req.body.libros) {

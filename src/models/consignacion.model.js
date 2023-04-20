@@ -27,6 +27,10 @@ export class Consignacion{
             this.cliente = await Cliente.get_by_id(req);
         }
 
+        if (this.cliente.tipo == Cliente.particular){
+            throw new ValidationError("No se puede hacer una consignacion a un cliente CONSUMIDOR FINAL");
+        }
+
         let date = new Date().toISOString()
             .replace(/\..+/, '')     // delete the . and everything after;
             .replace(/T/, '_')       // replace T with a space

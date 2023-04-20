@@ -23,7 +23,7 @@ ClienteController.create = async (req, res) => {
      try {
         await Cliente.validate(req.body);
 
-        const cliente = new Cliente(req.body);
+        let cliente = new Cliente(req.body);
 
         await cliente.insert();
 
@@ -45,7 +45,12 @@ ClienteController.update = async (req, res) => {
                 message: "No hay ningun campo para actualizar",
             })
 
-        let cliente = await Cliente.get_by_id(req.params.id);
+        let cliente = {};
+        if (req.params.id == "consumidor_final"){
+            cliente = await Cliente.get_consumidor_final();
+        }else{
+            cliente = await Cliente.get_by_id(req.params.id);
+        }
         
         await cliente.update(req.body);
         
@@ -61,7 +66,12 @@ ClienteController.update = async (req, res) => {
 
 ClienteController.get_stock = async(req, res) => {
     try {
-        const cliente = await Cliente.get_by_id(req.params.id);
+        let cliente = {};
+        if (req.params.id == "consumidor_final"){
+            cliente = await Cliente.get_consumidor_final();
+        }else{
+            cliente = await Cliente.get_by_id(req.params.id);
+        }
         
         let stock = await cliente.get_stock();
         return res.json(stock)
@@ -72,7 +82,12 @@ ClienteController.get_stock = async(req, res) => {
 
 ClienteController.get_ventas = async(req, res) => {
     try {
-        const cliente = await Cliente.get_by_id(req.params.id);
+        let cliente = {};
+        if (req.params.id == "consumidor_final"){
+            cliente = await Cliente.get_consumidor_final();
+        }else{
+            cliente = await Cliente.get_by_id(req.params.id);
+        }
         
         let ventas = await cliente.get_ventas();
         return res.json(ventas)
@@ -99,7 +114,6 @@ ClienteController.delet = async (req, res) => {
 ClienteController.get_all = async function(req, res){
     try {
         let clientes = await Cliente.get_all()
-        
         return res.json(clientes)
     } catch (error) {
         return parse_error(res, error);
@@ -107,15 +121,13 @@ ClienteController.get_all = async function(req, res){
 }
 
 ClienteController.get_one = async function(req, res){
-    let params = req.params;
-
-    if (!params.id) return res.status(400).json({
-        success: false,
-        message: "Se nececita pasar un id"
-    });
-
     try {
-        let cliente = await Cliente.get_by_id(params.id);
+        let cliente = {};
+        if (req.params.id == "consumidor_final"){
+            cliente = await Cliente.get_consumidor_final();
+        }else{
+            cliente = await Cliente.get_by_id(req.params.id);
+        }
 
         return res.json(cliente);
     } catch (error) {

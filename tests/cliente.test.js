@@ -4,6 +4,7 @@ import chai from 'chai';
 import {conn} from '../src/db.js'
 
 import {expect_err_code, expect_success_code} from './util.js';
+import {Cliente} from '../src/models/cliente.model.js';
 
 let cliente = {}
 const app = 'http://localhost:3000'
@@ -23,9 +24,7 @@ const app = 'http://localhost:3000'
 
 describe('POST cliente/', () => {
     it('Sin nombre', async () => {
-        const res = await request(app)
-            .post('/cliente/')
-            .send(cliente);
+        const res = await request(app).post('/cliente/').send(cliente);
         
         cliente.nombre = 'Test';
         cliente.email = 'test@gmail.com';
@@ -33,30 +32,25 @@ describe('POST cliente/', () => {
         expect_err_code(400, res);
     });
 
-    it('Sin tipo', async () => {
-        const res = await request(app)
-            .post('/cliente/')
-            .send(cliente);
+    it('consumidor final', async () => {
+        cliente.tipo = Cliente.particular;
+        const res = await request(app).post('/cliente/').send(cliente);
         
-        cliente.tipo = 1;
+        delete cliente.tipo;
         
         expect_err_code(400, res);
     });
 
     it('Sin cuit', async () => {
-        const res = await request(app)
-            .post('/cliente/')
-            .send(cliente);
+        const res = await request(app).post('/cliente/').send(cliente);
         
-        cliente.cuit = 11111111;
+        cliente.cuit = '11111111';
         
         expect_err_code(400, res);
     });
 
     it('Persona no está cargada en Afip', async () => {        
-        const res = await request(app)
-            .post('/cliente/')
-            .send(cliente);
+        const res = await request(app).post('/cliente/').send(cliente);
         
         cliente.cuit = '20434919798';
         
@@ -65,9 +59,7 @@ describe('POST cliente/', () => {
 
 
     it('Success', async () => {
-        const res = await request(app)
-            .post('/cliente/')
-            .send(cliente);
+        const res = await request(app).post('/cliente/').send(cliente);
 
         expect_success_code(201, res);
 
@@ -75,9 +67,7 @@ describe('POST cliente/', () => {
     });
 
     it('cuit repetido', async () => {
-        const res = await request(app)
-            .post('/cliente/')
-            .send(cliente);
+        const res = await request(app).post('/cliente/').send(cliente);
         
         expect_err_code(404, res);
     });
@@ -92,7 +82,7 @@ describe('GET cliente/', () => {
 
     it('Obtener cliente', async () => {
         const res = await request(app).get('/cliente/'+cliente.id);
-        //console.log(res.body);
+        
         chai.expect(res.status).to.equal(200);
         chai.expect(res.body).to.deep.include(cliente);
     });
@@ -103,8 +93,74 @@ describe('GET cliente/', () => {
         chai.expect(res.status).to.equal(200);
         chai.expect(res.body.map(p => p.id)).to.deep.include(cliente.id);
     });
+
+    it('consumidor final', async () => {
+        const res = await request(app).get('/cliente/consumidor_final');
+
+        chai.expect(res.status).to.equal(200);
+    });
 });
 
+describe('PUT cliente/{id}', () => {
+    it('Nothing changed', async () => {
+        delete cliente.cuit;
+        const res = await request(app).put('/cliente/'+cliente.id).send(cliente);
+
+        chai.expect(res.status).to.equal(200);
+    });
+
+    it('Actualizar nombre y email', async () => {
+        cliente.cuit = '20434919798';
+        cliente.nombre = 'Test nro 2';
+
+        let req = Object.assign({}, cliente);
+        req.razon_social = "no se debe actualizar";
+        req.cond_fiscal = "no se debe actualizar";
+        req.tipo = 0; //No se debe actualizar
+        
+        const res = await request(app).put('/cliente/'+cliente.id).send(req);
+        
+        expect_success_code(201, res);
+    });
+
+    it('Los datos fueron actualizados correctamente', async () => {
+        //console.log("PUT", cliente);
+        const res = await request(app).get('/cliente/'+cliente.id);
+
+        chai.expect(res.status).to.equal(200);
+
+        chai.expect(res.body).to.deep.include(cliente);       
+    });
+
+    it('Actualizar a un cuit que no esta en afip', async () => {
+        cliente.cuit = '1111111111';
+        const res = await request(app).put('/cliente/'+cliente.id).send(cliente);
+
+        expect_err_code(404, res);
+    });
+
+    it('Actualizar el cuit', async () => {
+        cliente.cuit = '30500001735';
+        cliente.este_campo_no_va = "anashe23";
+
+        const res = await request(app).put('/cliente/'+cliente.id).send(cliente);
+        
+        console.log(res.body);
+        cliente = res.body.data;
+
+        expect_success_code(201, res);
+    });
+
+    it('El cuit se actualizo correctamente', async () => {
+        const res = await request(app).get('/cliente/'+cliente.id);
+
+        chai.expect(res.status).to.equal(200);
+
+        delete cliente.tipo;
+        chai.expect(res.body).to.deep.include(cliente);       
+    });
+
+})
 
 describe('DELETE', () => {
     it('Hard delete', async () => {
@@ -114,77 +170,3 @@ describe('DELETE', () => {
         );
     });
 });
-
-
-
-/*
-describe('PUT cliente/{id}', () => {
-    it('Nothing changed', async () => {
-        delete cliente.cuit;
-        const res = await request(app)
-            .put('/cliente/'+cliente.id)
-            .send(cliente);
-
-        chai.expect(res.status).to.equal(200);
-    });
-
-    it('Actualizar a un cuit que ya está cargado', async () => {
-        cliente.cuit = 22222222;
-        //console.log("update:", cliente);
-        const res = await request(app)
-            .put('/cliente/'+cliente.id)
-            .send(cliente);
-        //console.log(res.body);
-        chai.expect(res.status).to.equal(404);
-        chai.expect(res.body.success).to.be.false;
-        chai.expect(res.body.error).to.exist;
-    });
-
-    it('Success', async () => {
-        cliente.cuit=33333333
-        cliente.nombre = 'TestTest';
-        cliente.este_campo_no_va = "anashe23";
-
-        const res = await request(app)
-            .put('/cliente/'+cliente.id)
-            .send(cliente);
-        console.log(res.body);
-        delete cliente.este_campo_no_va;
-        res.body.data.id = cliente.id;
-        chai.expect(res.status).to.equal(201);
-        chai.expect(res.body.data).to.deep.include(cliente);
-    });
-
-})
-
-describe('DELETE /cliente/{id}', () => {
-    it('cliente no existe', async () => {
-        const res = await request(app).get('/cliente/'+(cliente.id+2));
-
-        chai.expect(res.status).to.equal(404);
-        chai.expect(res.body.success).to.be.false;
-        chai.expect(res.body.error).to.exist;
-    });
-    
-    it('Success', async () => {
-        const res = await request(app).delete('/cliente/'+cliente.id);
-
-        chai.expect(res.status).to.equal(200);
-    });
-
-    it('La cliente ya no está en la lista', async () => {
-        const res = await request(app).get('/cliente/');
-        //console.log(res.body, "cliente id ", cliente.id);
-        chai.expect(res.status).to.equal(200);
-        chai.expect(res.body.map(p => p.id)).to.not.include(cliente.id);
-    });
-
-    it('HARD DELETE', async () => {
-        await conn.query(`
-            DELETE FROM clientes
-            WHERE cuit=33333333
-            OR cuit=22222222
-        `);
-    });
-  });
-*/

@@ -9,7 +9,7 @@ import { Venta } from '../src/models/venta.model.js';
 const app = 'http://localhost:3000'
 
 let cliente = {
-    cuit: 20442317632,
+    cuit: 20434919798,
     nombre: "ClienteTest",
     email: "clientetest@gmail.com",
     tipo: 1
@@ -80,6 +80,7 @@ describe('VENTA', () => {
 
             chai.expect(res.status).to.equal(200);
             venta.libros = [ res.body[3], res.body[5], res.body[8] ];
+            console.log("LIBROS: ", venta.libros);
         });
 
         it('Agregar stock a los libros', async () => {
@@ -141,6 +142,8 @@ describe('VENTA', () => {
         describe('Venta exitosa', () => {
             it('vender', async () => {
                 const res = await request(app).post('/venta/').send(venta);
+
+                venta.id = res.body.data.id;
             
                 expect_success_code(201, res);
             });
@@ -183,6 +186,10 @@ describe('VENTA', () => {
                     }
                     chai.expect(err).to.not.exist;
                 });
+            });
+            it('Se puede descargar la factura', async () => {      
+                const res = await request(app).get(`/venta/${venta.id}/factura`); 
+                chai.expect(res.status).to.equal(200);
             });
         });
     });

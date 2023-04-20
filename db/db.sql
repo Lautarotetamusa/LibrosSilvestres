@@ -41,7 +41,7 @@ CREATE TABLE clientes(
 
     cuit VARCHAR(15) DEFAULT NULL,
     cond_fiscal VARCHAR(50) NOT NULL,
-    razon_social VARCHAR(50) NOT NULL,
+    razon_social VARCHAR(255) NOT NULL,
     domicilio VARCHAR(100) NOT NULL,
 
     tipo TINYINT DEFAULT 0,
@@ -105,5 +105,12 @@ CREATE TABLE libros_ventas(
     FOREIGN KEY (isbn) REFERENCES libros(isbn),
     FOREIGN KEY (id_venta) REFERENCES ventas(id)
 );
-    
+
+/*Cliente Consumidor final*/
+INSERT INTO clientes SET 
+nombre = "CONSUMIDOR FINAL",
+cond_fiscal = "CONSUMIDOR FINAL",
+razon_social = "CONSUMIDOR FINAL",
+domicilio = "",
+tipo = 0;
 

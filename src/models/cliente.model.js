@@ -14,11 +14,8 @@ export class Cliente{
 
         this.nombre = request.nombre;
         this.email  = request.email;
-        this.tipo   = request.tipo;
 
-        if (request.tipo == Cliente.inscripto){
-            this.cuit = request.cuit;
-        }
+        this.cuit = request.cuit;
 
         this.razon_social = request.razon_social || "";
         this.domicilio    = request.domicilio || "";
@@ -26,10 +23,9 @@ export class Cliente{
     }
 
     static async validate(request) {
-        if(!('tipo' in request))
-            throw new ValidationError("Se debe pasar un tipo");
-        if(!Cliente.tipos[request.tipo])
-            throw new ValidationError("El tipo del cliente no es correcto [0,1]");
+        if(('tipo' in request))
+            if(request.tipo == Cliente.particular)
+                throw new ValidationError("No se puede crear un cliente de tipo consumidor final");
 
         if (!request.nombre)
             throw new ValidationError("El nombre es obligatorio");
@@ -37,18 +33,13 @@ export class Cliente{
         if (!('email' in request))
             this.email = ""
 
-        if (request.tipo == Cliente.inscripto)
-            await Cliente.validate_inscripto(request);
-    }
-    
-    static async validate_inscripto(request){
         if (!('cuit' in request))
             throw new ValidationError("El cuit es obligatorio para los clientes inscriptos");
 
-       if (await Cliente.cuil_exists(request.cuit))
-            throw new Duplicated(`Ya existe un cliente con cuil ${request.cuit}`)
+        if (await Cliente.cuil_exists(request.cuit))
+            throw new Duplicated(`Ya existe un cliente con cuit ${request.cuit}`)
     }
-
+    
     async set_afip_data(afip_data){
         console.log("afip_data:", JSON.stringify(afip_data, null, 4));
 
@@ -76,13 +67,6 @@ export class Cliente{
             + afip_data.datosGenerales.domicilioFiscal.descripcionProvincia;
     }
 
-    async consumidor_final(){
-        this.cond_fiscal  = "CONSUMIDOR FINAL"
-        this.razon_social = "CONSUMIDOR FINAL"
-        this.domicilio = ""
-        this.cuit = "0"
-    }
-
     static async cuil_exists(cuit){
         let res = (await conn.query(`
 
@@ -100,6 +84,7 @@ export class Cliente{
             throw new NotFound(`La persona con CUIT ${this.cuit} no está cargada en afip`);
 
         this.set_afip_data(afip_data);
+        this.tipo = Cliente.inscripto;
 
         let res = (await conn.query(`
             INSERT INTO ${table_name} SET ?`
@@ -109,30 +94,28 @@ export class Cliente{
     }
 
     async update(data) {
-        //Si cambiamos de tipo particular a inscripto
-        if (data.tipo != this.tipo && data.tipo == Cliente.inscripto){
-            await Cliente.validate_inscripto(data);
-            if (data.cuit && await Cliente.cuil_exists(data.cuit))
-                throw new Duplicated(`Ya existe un cliente con cuit ${data.cuit}`)
-        } 
-        if (this.tipo == Cliente.inscripto){
-            if (data.cuit && await Cliente.cuil_exists(data.cuit))
-                throw new Duplicated(`Ya existe un cliente con cuil ${data.cuit}`)
+        if (this.tipo == Cliente.particular)
+            throw new ValidationError("No se puede actualizar un cliente CONSUMIDOR FINAL");
+
+        if ('cuit' in data){
+            if (data.cuit != this.cuit){
+                const afip_data = await afip.RegisterScopeFive.getTaxpayerDetails(data.cuit);
+                if (afip_data === null)
+                    throw new NotFound(`La persona con CUIT ${data.cuit} no está cargada en afip`);
+            
+                this.set_afip_data(afip_data);
+            }
         }
 
-        if ('tipo' in data)
-            this.tipo = data.tipo;
         this.cuit   = data.cuit     || this.cuit;
         this.nombre = data.nombre   || this.nombre;
         this.email  = data.email    || this.email;
+        this.tipo = Cliente.inscripto;
 
         let res = (await conn.query(`
             UPDATE ${table_name} SET ?
             WHERE id=${this.id}`
         , this))[0];
-
-        if (res.affectedRows == 0)
-            throw new NotFound(`No se encuentra el cliente con id ${this.id}`);
 
         if (res.changedRows == 0)
             throw new NothingChanged('Ningun valor es distinto a lo que ya existia en la base de datos');
@@ -175,7 +158,6 @@ export class Cliente{
     }
 
     async update_stock(libros){
-        //console.log("libros: ", libros);
         let stock_clientes = libros.map(l => [this.id, l.cantidad, l.isbn])
         await conn.query(`
 
@@ -186,27 +168,7 @@ export class Cliente{
                 stock = stock + VALUES(stock)
 
         `, [stock_clientes]);
-
-        /*
-        INSERT INTO stock_cliente (id_cliente, stock, isbn)
-        VALUES 
-            (78, 1, 97898712345), 
-            (78, 4, 98765432187)
-        ON DUPLICATE KEY UPDATE
-            stock = 
-                CASE
-                    WHEN stock > VALUES(stock) THEN stock - VALUES(stock)
-                    ELSE stock
-                END;
-        */
     }
-    /*
-        INSERT INTO stock_cliente
-        (id_cliente, stock, isbn)
-        VALUES (78, -3, 98765432100), (78, -1, 97898712345)
-        ON DUPLICATE KEY UPDATE
-            stock = stock + VALUES(stock)     
-    */
 
     async have_stock(libros){
         for (let libro of libros){
@@ -241,6 +203,18 @@ export class Cliente{
 
         if (!response.length)
             throw new NotFound(`El cliente con id ${id} no se encontro`);
+
+        return new Cliente(response[0]);
+    }
+
+    static async get_consumidor_final(){
+        let response = (await conn.query(`
+            SELECT * FROM ${table_name} 
+            WHERE tipo=${Cliente.particular}
+        `))[0];
+
+        if (response.length > 1)
+            throw new NotFound("Hay más de un cliente CONSUMIDOR FINAL, algo anda muy mal viejo");
 
         return new Cliente(response[0]);
     }
