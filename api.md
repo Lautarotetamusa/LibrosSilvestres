@@ -58,6 +58,9 @@ Si no se encuentra devuelve un error 404 NotFound
 
 #### Lista de libros
 
+`GET /libro`
+Devuelve todos los libros
+
 `GET /libro?page=1`
 
 Devuelve 10 libros, si page es 1 entonces nos trae los primeros 10 libros y asi
@@ -105,9 +108,9 @@ Pasar las personas directamente cuando lo creamos
 }
 ```
 
-Valida campos obligatorios de las personas y del libro
-Si el dni de alguna persona ya esta cargado devuelve un error 404 NotFound
-Si algun id de una persona pasado no existe devuelve un error 404 NotFound
+* Valida campos obligatorios de las personas y del libro
+* Si el dni de alguna persona ya esta cargado devuelve un error 404 NotFound
+* Si algun id de una persona no existe devuelve un error 404 NotFound
 
 #### Obtener libro por isbn
 
@@ -174,8 +177,9 @@ Lista
 ]
 ```
 
-Devuelve error en caso de no encontrar a la persona o que no exista el libro
-Si intentamos agregar una persona que ya esta en ese libro, no devolverá ningun error pero no hará nada
+* Si la persona no existe devuelve error 404 NotFound
+* Si el libro no existe devuelve error 404 NotFound
+* Si intentamos agregar una persona que ya esta en ese libro, no devolverá ningun error pero no hará nada
 
 #### Borrar una persona de un libro
 
@@ -196,8 +200,8 @@ Si intentamos agregar una persona que ya esta en ese libro, no devolverá ningun
 
 Borra la persona de tipo 0(autor) e id 500 y la persona de id 499 y tipo 1(ilustrador)
 
-Si ninguna persona trabaja en el libro con el tipo pasado devuelve un error 404
-Si encuentra al menos una borra solo la/s encontradas y devuelve codigo 200
+* Si ninguna persona trabaja en el libro con el tipo pasado devuelve un error 404
+* Si encuentra al menos una borra solo la/s encontrada/s y devuelve codigo 200
 
 #### Actualizar una persona de un libro
 
@@ -245,13 +249,18 @@ Response:
   "id": 76,
   "nombre": "Libreria pepito",
   "email": null,
-  "tipo": 1,
   "cuit": "20434919798",
   "razon_social": "LAUTARO TETA MUSA",
   "domicilio": "URQUIZA 1159 Piso:4 Dpto:4 - ROSARIO NORTE SANTA FE",
   "cond_fiscal": "IVA EXENTO"
 }
 ```
+
+Para consumidor final
+
+`GET /cliente/consumidor_final`
+
+* Si el cliente no existe devuelve un error 404 NotFound
 
 #### Obtener ventas de un cliente
 
@@ -276,6 +285,15 @@ Response:
 ]
 ```
 
+Para consumidor final
+
+`GET /cliente/consumidor_final/ventas`
+
+* Cada vez que se realice una nueva venta para el cliente, aparecera en la lista
+* Si el cliente no existe devuelve un error 404 NotFound
+* Si el cliente no tiene ventas devuelve una lista vacia []
+* las facturas se guardan en /facturas/{file_path}
+
 #### Obtener el stock de un cliente
 
 `GET cliente/{id}/stock`
@@ -296,60 +314,119 @@ Response:
 ]
 ```
 
+* Si el cliente no existe devuelve un error 404 NotFound
+* Si el cliente no tiene stock devuelve una lista vacia []
+
 #### Crear cliente
+
+Existen dos tipos de clientes, los clientes inscriptos y el CONSUMIDOR FINAL, de este último solo podrá haber uno en todo el sistema. Todas las ventas que se facturen como consumidor final estarán relacionadas con este único cliente.
+
+### Consumidor final
+Este cliente es único en el sistema, no se puede crear, actualizar ni eliminar.
 
 `POST /cliente`
 
-Clientes del tipo 0 (particular)
-
+Request:
 ```json
 {
-    "nombre": "jose", 
-    "email": "jose@gmail.com", //No olbigatorio, se hace null si no existe
+  "nombre": "bancoSantaCruz",
+  "email": "bancoStaCruz@gmail.com",
+  "cuit": "30500098801"
 }
 ```
-
-Clientes del tipo 1 (inscripto)
-
+Response:
 ```json
 {
-    "nombre": "Libreria 3",
-    "email": "libreria3@gmail.com", //No olbigatorio, se hace null si no existe
+  "success": true,
+  "message": "Cliente creado correctamente",
+  "data": {
+    "nombre": "banco",
+    "email": "bancoStaCruz@gmail.com",
+    "cuit": "30500098801",
+    "razon_social": "BANCO DE SANTA CRUZ SOCIEDAD ANONIMA",
+    "domicilio": "AV. PTE. DR. N. C. KIRCHNER 812 - RIO GALLEGOS SANTA CRUZ",
+    "cond_fiscal": "",
     "tipo": 1,
-    "cuit": 434919798
+    "id": 18
+  }
 }
 ```
-
-Si el cuit no esta cargado en afip devolver un error 400
-Si se encuentra el cuit carga desde afip datos relacionados a esa persona
+* Si el cuit no existe en afip devuelve un error 400
+* Carga desde afip datos relacionados a ese cuit
 
 #### Actualizar cliente
 
 `PUT /cliente/{id}`
 
-Actualizar cliente del tipo 0 al tipo 1
-
+### Si no se actualiza el cuit
+Request:
 ```json
 {
-    "nombre": "Libreria 3",
-    "email": "libreria3@gmail.com",
+  "email": "bancoStaCruzCambiado@gmail.com",
+}
+```
+Response:
+```json
+{
+  "success": true,
+  "message": "Cliente creado correctamente",
+  "data": {
+    "nombre": "banco",
+    "email": "bancoStaCruz@gmail.com",
+    "cuit": "30500098801",
+    "razon_social": "BANCO DE SANTA CRUZ SOCIEDAD ANONIMA",
+    "domicilio": "AV. PTE. DR. N. C. KIRCHNER 812 - RIO GALLEGOS SANTA CRUZ",
+    "cond_fiscal": "",
     "tipo": 1,
-    "cuit": 434919798
+    "id": 18
+  }
 }
 ```
 
-Actualizar cliente del tipo 0
-
+* Si no cambia ningun valor devuelve 
 ```json
 {
-    "nombre": "jose",
-    "email": "jose@gmail.com",
+  "success": false,
+  "error": "Ningun valor es distinto a lo que ya existia en la base de datos"
 }
 ```
+
+* Si el cliente no existe devuelve un error 404 NotFound
+
+### Si se actualiza el cuit
+Request:
+```json
+{
+  "cuit": "33999181819"
+}
+```
+Response:
+```json
+{
+  "success": true,
+  "message": "Cliente actualizado correctamente",
+  "data": {
+    "id": 18,
+    "nombre": "banco",
+    "email": "email2",
+    "cuit": "33999181819",
+    "razon_social": "BANCO MUNICIPAL DE ROSARIO",
+    "domicilio": "SAN MARTIN 730 - ROSARIO NORTE SANTA FE",
+    "cond_fiscal": "",
+    "tipo": 1
+  }
+}
+```
+* Si el nuevo cuit no existe en afip devuelve un error 400
+* Carga los datos de afip relacionados con el nuevo cuit pasado
+
 
 #### Borrar un cliente
 
 `DELETE cliente/{id}`
+
+Por ahora solo borra los clientes que no tienen ninguna venta ni consignacion asignada.
+TODO: baja lógica.
 
 ## Ventas
 
@@ -380,11 +457,12 @@ Peticion:
 }
 ```
 
-Si el id del cliente no existe devuelve un error 404 NotFound
-Si algun isbn no existe devuelve un error 404 NotFound
-Si el stock de algun libro no es suficiente devuelve un error 400
+* Si el id del cliente no existe devuelve un error 404 NotFound
+* Si algun isbn no existe devuelve un error 404 NotFound
+* Si el stock de algun libro no es suficiente devuelve un error 400
 
-Emite una factura nueva en afip, el pdf se guarda en facturas/${path}
+* Emite una factura nueva en afip, el pdf se guarda en facturas/${path}
+* Agrega una venta a la lista de ventas del cliente en cliente/{id_cliente}/ventas
 
 ## Consignaciones
 
@@ -404,11 +482,11 @@ Emite una factura nueva en afip, el pdf se guarda en facturas/${path}
 }
 ```
 
-Si el id del cliente no existe devuelve un error 404 NotFound
-Si algun isbn no existe devuelve un error 404 NotFound
-Si el stock de algun libro no es suficiente devuelve un error 400
+* Si el id del cliente no existe devuelve un error 404 NotFound
+* Si algun isbn no existe devuelve un error 404 NotFound
+* Si el stock de algun libro no es suficiente devuelve un error 400
 
-Si tiene exito la consulta devuelve 200 y:
+* Si tiene exito la consulta devuelve 200 y:
 
 - Inserta una fila a consignacion.
 - Inserta una fila a `libro_consignacion` por cada libro.
