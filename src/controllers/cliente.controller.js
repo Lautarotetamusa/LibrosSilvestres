@@ -74,8 +74,8 @@ ClienteController.get_ventas = async(req, res) => {
     try {
         const cliente = await Cliente.get_by_id(req.params.id);
         
-        let stock = await cliente.get_ventas();
-        return res.json(stock)
+        let ventas = await cliente.get_ventas();
+        return res.json(ventas)
     } catch (error) {
         return parse_error(res, error);
     }

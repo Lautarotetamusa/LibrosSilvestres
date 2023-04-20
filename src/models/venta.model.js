@@ -128,7 +128,8 @@ export class Venta{
         `))[0];
 
         let clientes = (await conn.query(`
-            SELECT cuit, nombre, email, tipo, cond_fiscal FROM clientes
+            SELECT cuit, nombre, email, tipo, cond_fiscal 
+            FROM clientes
             INNER JOIN ventas
                 ON ventas.id_cliente = clientes.id
             WHERE ventas.id = ${id}

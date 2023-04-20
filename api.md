@@ -11,13 +11,17 @@
 ## Personas
 
 #### Lista de autores
+
 `GET /persona/?tipo=autor`
 
 #### Lista de ilustradores
+
 `GET /persona/?tipo=ilustrador`
 
 #### Dar de alta persona
+
 `POST /persona`
+
 ```json
 {  
   "nombre": "agustin1",
@@ -25,36 +29,45 @@
   "dni": 43491979
 }
 ```
+
 Si el dni ya se encuentra cargado nos devuelve un error del tipo 404
 Nombre e dni son campos obligatorios
 
 #### Obtener persona con id
+
 `GET /persona/{id}`
 Si no se encuentra devuelve un error 404 NotFound
 
 #### Actualizar persona con id
+
 `PUT /persona/{id}`
+
 ```json
 {
   "nombre": "agustin1"
 }
 ```
+
 Si no se encuentra devuelve un error 404 NotFound
 
-#### borrar persona con id {id}
+#### borrar persona con id
+
 `DELETE /persona/{id}`
 
 ## Libros
 
 #### Lista de libros
+
 `GET /libro?page=1`
 
 Devuelve 10 libros, si page es 1 entonces nos trae los primeros 10 libros y asi
 
 #### Crear libro
+
 `POST /libro`
 
 Cargar los datos
+
 ```json
 {
   "titulo": "Breviario",
@@ -65,6 +78,7 @@ Cargar los datos
 ```
 
 Pasar las personas directamente cuando lo creamos
+
 ```json
 {
   "titulo": "Breviario",
@@ -90,11 +104,13 @@ Pasar las personas directamente cuando lo creamos
   ]
 }
 ```
+
 Valida campos obligatorios de las personas y del libro
 Si el dni de alguna persona ya esta cargado devuelve un error 404 NotFound
 Si algun id de una persona pasado no existe devuelve un error 404 NotFound
 
 #### Obtener libro por isbn
+
 `GET /libro/{isbn}`
 Devuelve la data del libro y las personas relacionadas con este
 
@@ -103,6 +119,7 @@ Devuelve la data del libro y las personas relacionadas con este
 `GET /libro/{isbn}/ventas`
 
 Response:
+
 ```json
 [
   {
@@ -115,11 +132,13 @@ Response:
   }
 ]
 ```
+
 Devuelve una lista de todas las ventas de ese libro
 
-
 #### Actualizar libro por isbn
+
 `PUT /libro{isbn}`
+
 ```json
 {
   "titulo": "Breviario",
@@ -127,16 +146,20 @@ Devuelve una lista de todas las ventas de ese libro
   "stock": 10
 }
 ```
-Los campos que se pueden actualizar son  
-  - stock
-  - precio
-  - titulo
-  - fecha_edicion
+
+Los campos que se pueden actualizar son
+
+- stock
+- precio
+- titulo
+- fecha_edicion
 
 #### Agregar personas a un libro
+
 `POST /libro/{isbn}/personas`
 
 Lista
+
 ```json
 [
   {
@@ -150,6 +173,7 @@ Lista
   }
 ]
 ```
+
 Devuelve error en caso de no encontrar a la persona o que no exista el libro
 Si intentamos agregar una persona que ya esta en ese libro, no devolverá ningun error pero no hará nada
 
@@ -169,12 +193,14 @@ Si intentamos agregar una persona que ya esta en ese libro, no devolverá ningun
   }
 ]
 ```
+
 Borra la persona de tipo 0(autor) e id 500 y la persona de id 499 y tipo 1(ilustrador)
 
 Si ninguna persona trabaja en el libro con el tipo pasado devuelve un error 404
 Si encuentra al menos una borra solo la/s encontradas y devuelve codigo 200
 
 #### Actualizar una persona de un libro
+
 `PUT /libro/{isbn}/personas`
 
 ```json
@@ -191,11 +217,13 @@ Si encuentra al menos una borra solo la/s encontradas y devuelve codigo 200
   }
 ]
 ```
+
 Solo se puede actualizar el porcentaje
 Si alguna persona no se encuentra simplemente actualiza las otras
 Nunca devuelve un error
 
 #### Borrar un libro
+
 `DELETE /libro/{isbn}`
 
 Borra todas las relaciones con las personas
@@ -203,12 +231,15 @@ Borra todas las relaciones con las personas
 ## Clientes
 
 #### Obtener todos los clientes
+
 `GET /cliente`
 
 #### Obtener cliente
+
 `GET /cliente/{id}`
 
 Response:
+
 ```json
 {
   "id": 76,
@@ -223,23 +254,21 @@ Response:
 ```
 
 #### Obtener ventas de un cliente
+
 `GET /cliente/{id}/ventas`
 
 Response:
+
 ```json
 [
   {
     "id": 57,
-    "titulo": "Dama de corazones",
-    "cantidad": 1,
     "fecha": "2023-03-07T22:24:49.000Z",
     "total": 4274.31,
     "file_path": "Lautaroteta_2023_03_07_222449.pdf"
   },
   {
     "id": 58,
-    "titulo": "Dama de corazones",
-    "cantidad": 1,
     "fecha": "2023-03-07T22:25:49.000Z",
     "total": 4274.31,
     "file_path": "Lautaroteta_2023_03_07_222549.pdf"
@@ -248,8 +277,10 @@ Response:
 ```
 
 #### Obtener el stock de un cliente
+
 `GET cliente/{id}/stock`
 Response:
+
 ```json
 [
   {
@@ -266,9 +297,11 @@ Response:
 ```
 
 #### Crear cliente
+
 `POST /cliente`
 
 Clientes del tipo 0 (particular)
+
 ```json
 {
     "nombre": "jose", 
@@ -277,6 +310,7 @@ Clientes del tipo 0 (particular)
 ```
 
 Clientes del tipo 1 (inscripto)
+
 ```json
 {
     "nombre": "Libreria 3",
@@ -285,14 +319,16 @@ Clientes del tipo 1 (inscripto)
     "cuit": 434919798
 }
 ```
+
 Si el cuit no esta cargado en afip devolver un error 400
 Si se encuentra el cuit carga desde afip datos relacionados a esa persona
 
-
 #### Actualizar cliente
+
 `PUT /cliente/{id}`
 
 Actualizar cliente del tipo 0 al tipo 1
+
 ```json
 {
     "nombre": "Libreria 3",
@@ -303,6 +339,7 @@ Actualizar cliente del tipo 0 al tipo 1
 ```
 
 Actualizar cliente del tipo 0
+
 ```json
 {
     "nombre": "jose",
@@ -311,16 +348,20 @@ Actualizar cliente del tipo 0
 ```
 
 #### Borrar un cliente
+
 `DELETE cliente/{id}`
 
 ## Ventas
 
 #### Obtener los medios de pago
+
 `GET /venta/medios_pago`
 
 #### Nueva venta
+
 `POST /venta`
 Peticion:
+
 ```json
 {
     "medio_pago": 0,
@@ -338,15 +379,17 @@ Peticion:
     ]
 }
 ```
-Si el id del cliente no existe devuelve un error 404 NotFound  
-Si algun isbn no existe devuelve un error 404 NotFound  
-Si el stock de algun libro no es suficiente devuelve un error 400  
+
+Si el id del cliente no existe devuelve un error 404 NotFound
+Si algun isbn no existe devuelve un error 404 NotFound
+Si el stock de algun libro no es suficiente devuelve un error 400
 
 Emite una factura nueva en afip, el pdf se guarda en facturas/${path}
 
 ## Consignaciones
 
 #### Nueva consignacion
+
 `POST consignacion/`
 
 ```json
@@ -361,11 +404,12 @@ Emite una factura nueva en afip, el pdf se guarda en facturas/${path}
 }
 ```
 
-Si el id del cliente no existe devuelve un error 404 NotFound  
-Si algun isbn no existe devuelve un error 404 NotFound  
-Si el stock de algun libro no es suficiente devuelve un error 400  
+Si el id del cliente no existe devuelve un error 404 NotFound
+Si algun isbn no existe devuelve un error 404 NotFound
+Si el stock de algun libro no es suficiente devuelve un error 400
 
 Si tiene exito la consulta devuelve 200 y:
-  - Inserta una fila a consignacion.
-  - Inserta una fila a `libro_consignacion` por cada libro.
-  - Si existe una fila en `stock_cliente` para ese cliente y ese isbn la actualiza con el nuevo stock, sino inserta una nueva fila en `stock_cliente`.
+
+- Inserta una fila a consignacion.
+- Inserta una fila a `libro_consignacion` por cada libro.
+- Si existe una fila en `stock_cliente` para ese cliente y ese isbn la actualiza con el nuevo stock, sino inserta una nueva fila en `stock_cliente`.

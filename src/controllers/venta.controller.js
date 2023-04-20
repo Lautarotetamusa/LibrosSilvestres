@@ -37,10 +37,18 @@ VentaController.vender = async(req, res) => {
     }
 }
 
+VentaController.get_factura = async(req, res) => {
+    const venta = await Venta.get_by_id(req.params.id);
+
+    console.log(venta.file_path);
+
+    res.download('facturas/'+venta.file_path);
+}
+
 VentaController.get_one = async(req, res) => {
     try {
         let venta = await Venta.get_by_id(req.params.id);
-        console.log(venta);
+        //console.log(venta);
         return res.json(venta);
     } catch (error) {
         return parse_error(res, error);
@@ -49,9 +57,9 @@ VentaController.get_one = async(req, res) => {
 
 VentaController.get_all = async(req, res) => {
     try {
-        let venta = await Venta.get_all(req.params.id);
-        console.log(venta);
-        return res.json(venta);
+        let ventas = await Venta.get_all(req.params.id);
+        //console.log(ventas);
+        return res.json(ventas);
     } catch (error) {
         return parse_error(res, error);
     }

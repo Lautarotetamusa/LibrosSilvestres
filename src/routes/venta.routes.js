@@ -16,4 +16,6 @@ router.get('/:id', async (req, res) => {
     VentaController.get_one(req, res);
 });
 
+router.get('/:id/factura', VentaController.get_factura);
+
 export default router;
