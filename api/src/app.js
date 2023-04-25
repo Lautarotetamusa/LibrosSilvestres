@@ -10,7 +10,7 @@ import ConsignacionRouter from "./routes/consignacion.routes.js"
 
 dotenv.config();
 export const app = express()
-const port = process.env.PORT;
+const port = process.env.BACK_PORT;
 
 //Necesesario para que no tire error de   CORS
 app.use((req, res, next) => {

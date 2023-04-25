@@ -13,7 +13,6 @@ RUN apt-get update && apt-get install curl gnupg -y \
   && rm -rf /var/lib/apt/lists/*
 
 WORKDIR app/
-COPY package.json .
+COPY ./api/package.json .
 RUN npm install
-COPY ./src src/
-CMD npm run dev
+COPY ./api/src src/

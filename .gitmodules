@@ -1,0 +1,3 @@
+[submodule "react-libros-silvestres"]
+	path = front
+	url = https://github.com/agus32/react-libros-silvestres.git

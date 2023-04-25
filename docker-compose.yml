@@ -11,22 +11,39 @@ services:
     ports:
       - $DB_PORT:$DB_PORT
     volumes:
-      - /var/lib/mysql:/var/lib/mysql
+      - ./db:/docker-entrypoint-initdb.d #Crear las tablas automaticamente al iniciar
+      - /var/lib/mysql:/var/lib/mysql #Mantener la misma data de mi base de datos local
   
   app:
     depends_on:
-      - mysqldb
+      mysqldb:
+        condition: service_started
     build: 
-      dockerfile: ./Dockerfile
+      dockerfile: ./api/Dockerfile
     env_file: ./.env
     ports:
-      - $PORT:$PORT
+      - $BACK_PORT:$BACK_PORT
     environment:
       - DB_HOST=mysqldb
+    command: npm run dev
     volumes:
-     - ./src:/app/src
+     - ./api/src:/app/src
      - ./facturas:/app/facturas
      - ./remitos:/app/remitos
-    #stdin_open: true
-    #tty: true
 
+  front:
+    depends_on:
+      app:
+        condition: service_started
+    build:
+      dockerfile: ./front/Dockerfile
+    env_file: ./.env
+    environment:
+      - PORT=$FRONT_PORT
+      - REACT_APP_API_PORT=$BACK_PORT
+    command: npm start
+    ports:
+      - 80:$FRONT_PORT
+    volumes:
+      - ./facturas:/app/facturas
+      - ./remitos:/app/remitos

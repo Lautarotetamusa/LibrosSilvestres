@@ -1,9 +1,4 @@
-/node_modules
-package-lock.json
 .env
 
 /facturas/*
 /remitos/*
-
-src/afip/Claves/*
-src/afip/ClavesLibrosSilvestres/*
